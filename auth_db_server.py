@@ -40,10 +40,11 @@ class MongoDB(DatabaseInterface):
         # should children be sorted?
         return Node(node_id, sorted(values), children_ids)
 
-    def create_node(self, key) -> 'Node':
+    def create_node(self, values, children_ids) -> 'Node':
         """
         Inserts a node into the database and returns a Node object with the correct id
-        :param key: Initial key of the node, this is considered the left value
+        :param children_ids:
+        :param values: Initial key of the node, this is considered the left value
         """
         pass
 
@@ -52,6 +53,7 @@ class MongoDB(DatabaseInterface):
         Inserts a node into the underlying mongodb
         :param node: node object to be inserted
         """
+
         def create_mongodb_node():
             pass
 
@@ -178,7 +180,7 @@ def insert_empty_tree(value):
     nodes.insert_one(root)
 
 
-def insert_3_node_3_parent(value, insert_location, parent):
+def insert_3_node_3_parent(value, insert_location: 'Node', parent: 'Node'):
     values = [insert_location["values"]["left"], insert_location["values"]["right"], value]
     values.sort()
     min = values[0]
@@ -186,20 +188,24 @@ def insert_3_node_3_parent(value, insert_location, parent):
     max = values[2]
 
     # Create 2 new nodes for min and max
-    min_node = {'children': {'left': None, 'mid': None, 'right': None}, 'values': {'left': min, 'right': None}}
-    max_node = {'children': {'left': None, 'mid': None, 'right': None}, 'values': {'left': max, 'right': None}}
+    #min_node = {'children': {'left': None, 'mid': None, 'right': None}, 'values': {'left': min, 'right': None}}
+    #max_node = {'children': {'left': None, 'mid': None, 'right': None}, 'values': {'left': max, 'right': None}}
     # min_node = db.create_node(min)
-    min_node_id = nodes.insert_one(min_node).inserted_id
-    max_node_id = nodes.insert_one(max_node).inserted_id
+    min_node = db.create_node([min], [])
+    max_node = db.create_node([max], [])
 
-    parent_values = [parent["values"]["left"], parent["values"]["right"], mid]
+    #max_node_id = nodes.insert_one(max_node).inserted_id
+
+    parent_values = parent.get_values() + [mid]
     parent_values.sort()
     parent_min = parent_values[0]
     parent_mid = parent_values[1]
     parent_max = parent_values[2]
 
     # Create 2 new nodes for top min and top max
-    # if inserted in left subtree
+    # if inserted in right subtree
+
+    """
     top_min_node = {'children': {'left': parent["children"]["left"], 'mid': None, 'right': parent["children"]["mid"]},
                     'values': {'left': parent_min, 'right': None}}
     top_max_node = {'children': {'left': min_node_id, 'mid': None, 'right': max_node_id},
@@ -207,7 +213,12 @@ def insert_3_node_3_parent(value, insert_location, parent):
     top_min_node_id = nodes.insert_one(top_min_node).inserted_id
     top_max_node_id = nodes.insert_one(top_max_node).inserted_id
     # if inserted in right subtree
+    """
+    parent_children = parent.get_children_ids()
+    node_new_children = db.create_node([parent_children[0], parent_children[2]])
 
+
+    """
     # Put middle value in parent and update parent to point to the 2 new children
     parent["children"]["left"] = top_min_node_id
     parent["children"]["mid"] = None
@@ -220,7 +231,7 @@ def insert_3_node_3_parent(value, insert_location, parent):
 
     # Delete old node
     nodes.delete_one({"_id": insert_location["_id"]})
-
+    """
 
 def insert_3_node_2_parent(value, insert_location, parent):
     values = [insert_location["values"]["left"], insert_location["values"]["right"], value]
