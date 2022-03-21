@@ -31,10 +31,11 @@ class MongoDB(DatabaseInterface):
 
     def get_node_by_id(self, node_id):
         node = self.nodes.find_one({'_id': node_id})
-        values = node["values"].values()
-        children = node["children"].values()
+        # reads values and children and removes none values
+        values = [v for v in node["values"].values() if v]
+        children_ids = [v for v in node["children"].values() if v]
         # should children be sorted?
-        return Node(sorted(values), children)
+        return Node(node_id, sorted(values), children_ids)
 
     def insert_node(self, node: 'Node'):
         def create_mongodb_node():
@@ -44,18 +45,25 @@ class MongoDB(DatabaseInterface):
     def remove_node(self, node: 'Node'):
         pass
 
+    def update_node(self, node: 'Node'):
+        pass
+
 
 class Node:
 
-    def __init__(self, values, children):
+    def __init__(self, node_id, values, children_ids):
+        self.node_id = node_id
         self.values = values
-        self.children = children
+        self.children_ids = children_ids
 
     def get_values(self):
         return self.values
 
-    def get_children(self):
-        return self.children
+    def get_children_ids(self):
+        return self.children_ids
+
+    def is_2_node(self):
+        return len(self.values) == 1
 
 
 def find_nearest_node_and_parent(value):
