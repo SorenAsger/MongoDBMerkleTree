@@ -9,6 +9,43 @@ nodes = db.nodes
 root_id = "root"
 
 
+class DatabaseInterface:
+
+    def get_node_by_id(self, node_id):
+        raise NotImplementedError()
+
+    def insert_node(self, node: 'Node'):
+        raise NotImplementedError()
+
+    def remove_node(self, node: 'Node'):
+        raise NotImplementedError()
+
+
+class MongoDB(DatabaseInterface):
+
+    def get_node_by_id(self, node_id):
+        pass
+
+    def insert_node(self, node: 'Node'):
+        pass
+
+    def remove_node(self, node: 'Node'):
+        pass
+
+
+class Node:
+
+    def __init__(self):
+        self.values = []
+        self.children = []
+
+    def get_values(self):
+        return self.values
+
+    def get_children(self):
+        return self.children
+
+
 def find_nearest_node_and_parent(value):
     current = get_node_by_id(root_id)
     parent = None
