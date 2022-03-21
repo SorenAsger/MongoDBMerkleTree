@@ -20,6 +20,9 @@ class DatabaseInterface:
     def remove_node(self, node: 'Node'):
         raise NotImplementedError()
 
+    def update_node(self, node: 'Node'):
+        raise NotImplementedError()
+
 
 class MongoDB(DatabaseInterface):
 
@@ -37,15 +40,36 @@ class MongoDB(DatabaseInterface):
         # should children be sorted?
         return Node(node_id, sorted(values), children_ids)
 
+    def create_node(self, key) -> 'Node':
+        """
+        Inserts a node into the database and returns a Node object with the correct id
+        :param key: Initial key of the node, this is considered the left value
+        """
+        pass
+
     def insert_node(self, node: 'Node'):
+        """
+        Inserts a node into the underlying mongodb
+        :param node: node object to be inserted
+        """
         def create_mongodb_node():
             pass
+
         self.nodes.insert_one(create_mongodb_node())
 
     def remove_node(self, node: 'Node'):
+        """
+        Removes a node from the underlying mongodb
+        :param node: node object to be removed
+        """
         pass
 
     def update_node(self, node: 'Node'):
+        """
+        Assumes a node already exists in the underlying mongodb. Updates the values in the database so they are
+        congruent with the node object
+        :param node: node object with updated values
+        """
         pass
 
 
@@ -55,6 +79,11 @@ class Node:
         self.node_id = node_id
         self.values = values
         self.children_ids = children_ids
+        self.left_value = values[0]
+        if len(values) == 1:
+            self.right_value = None
+        else:
+            self.right_value = values[1]
 
     def get_values(self):
         return self.values
@@ -66,71 +95,58 @@ class Node:
         return len(self.values) == 1
 
 
-def find_nearest_node_and_parent(value):
-    current = get_node_by_id(root_id)
+db = MongoDB()
+
+
+def find_nearest_node_and_parent(value) -> ('Node', 'Node'):
+    current = db.get_node_by_id(root_id)
     parent = None
     nearest_node = None
     depth = 0
     while current is not None:
         depth += 1
-        values = current["values"]
-        children = current["children"]
+        values = current.get_values()
+        children = current.get_children_ids()
         # If the value is in the current node
-        if (value is values["left"] or value is values["right"]):
+        if value in values:
             return current, nearest_node
         # 2-node
-        if values["right"] is None:
-            if value < values["left"]:
-                path = "left"
+        if current.is_2_node():
+            if value < current.left_value:
+                child_id = children[0]
             else:
-                path = "right"
+                child_id = children[1]
         # 3-node
         else:
-            if value < values["left"]:
-                path = "left"
-            elif value > values["right"]:
-                path = "right"
+            if value < current.left_value:
+                child_id = children[0]
+            elif value > current.right_value:
+                # not super pretty, maybe abstract away into a method of Node?
+                # Have it return the correct child id
+                child_id = children[2]
             else:
-                path = "mid"
+                child_id = children[1]
         parent = nearest_node
         nearest_node = current
-        current = get_node_by_id(children[path])
+        current = db.get_node_by_id(child_id)
     print("depth of lookup: " + str(depth) + " for value: " + str(value))
     return nearest_node, parent
 
 
-def node_contains_value(value, node):
-    values = node["values"]
-    return values["left"] == value or values["right"] == value
-
-
-def contains(value):
-    nearest_node, _ = find_nearest_node_and_parent(value)
-    return node_contains_value(value, nearest_node)
-
-
-def is_2_node(node):
-    return node["values"]["right"] is None
-
-
-def is_3_node(node):
-    return node["values"]["right"] is not None
-
-
 def insert(value):
-    insert_location, parent = find_nearest_node_and_parent(value)
-    if insert_location is not None and node_contains_value(value, insert_location):
+    insertion_node, parent = find_nearest_node_and_parent(value)
+    if insertion_node is not None and value in insertion_node:
         print("value " + str(value) + " is already in the tree.")
-    elif insert_location is None:
+    elif insertion_node is None:
         insert_empty_tree(value)
-    elif is_2_node(insert_location):
-        insert_2_node(value, insert_location)
+    elif insertion_node.is_2_node():
+        insert_2_node(value, insertion_node)
     elif parent is None:
-        insert_3_node_root(value, insert_location)
-    elif is_2_node(parent):
-        insert_3_node_2_parent(value, insert_location, parent)
+        insert_3_node_root(value, insertion_node)
+    elif parent.is_2_node():
+        insert_3_node_2_parent(value, insertion_node, parent)
     else:
-        insert_3_node_3_parent(value, insert_location, parent)
+        insert_3_node_3_parent(value, insertion_node, parent)
 
 
 def insert_3_node_root(value, insert_location):
@@ -172,6 +188,7 @@ def insert_3_node_3_parent(value, insert_location, parent):
     # Create 2 new nodes for min and max
     min_node = {'children': {'left': None, 'mid': None, 'right': None}, 'values': {'left': min, 'right': None}}
     max_node = {'children': {'left': None, 'mid': None, 'right': None}, 'values': {'left': max, 'right': None}}
+    # min_node = db.create_node(min)
     min_node_id = nodes.insert_one(min_node).inserted_id
     max_node_id = nodes.insert_one(max_node).inserted_id
 
