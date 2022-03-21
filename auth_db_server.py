@@ -23,11 +23,23 @@ class DatabaseInterface:
 
 class MongoDB(DatabaseInterface):
 
+    def __init__(self, ip='localhost', port=27017):
+        self.client = MongoClient(ip, port)
+        self.db = client.test_database
+        self.nodes = self.db.nodes
+        self.root_id = "root"
+
     def get_node_by_id(self, node_id):
-        pass
+        node = self.nodes.find_one({'_id': node_id})
+        values = node["values"].values()
+        children = node["children"].values()
+        # should children be sorted?
+        return Node(sorted(values), children)
 
     def insert_node(self, node: 'Node'):
-        pass
+        def create_mongodb_node():
+            pass
+        self.nodes.insert_one(create_mongodb_node())
 
     def remove_node(self, node: 'Node'):
         pass
@@ -35,9 +47,9 @@ class MongoDB(DatabaseInterface):
 
 class Node:
 
-    def __init__(self):
-        self.values = []
-        self.children = []
+    def __init__(self, values, children):
+        self.values = values
+        self.children = children
 
     def get_values(self):
         return self.values
