@@ -52,19 +52,6 @@ def contains(value):
     return node_contains_value(value, nearest_node)
 
 
-def find_insertion_type(node, parent):
-    if node is None:
-        return "empty"
-    if is_2_node(node):
-        return "2node"
-    if parent is None:
-        return "3noderoot"
-    if is_2_node(parent):
-        return "3node2parent"
-    else:
-        return "3node3parent"
-
-
 def is_2_node(node):
     return node["values"]["right"] is None
 
@@ -75,7 +62,6 @@ def is_3_node(node):
 
 def insert(value):
     insert_location, parent = find_nearest_node_and_parent(value)
-    #insertion_type = find_insertion_type(insert_location, parent)
     if insert_location is not None and node_contains_value(value, insert_location):
         print("value " + str(value) + " is already in the tree.")
     elif insert_location is None:
