@@ -1,0 +1,4 @@
+{'_id': 'root', 'children': {'left': 'leaf_left', 'mid': ObjectId('6231ca6253ee8cc17693a51e'), 'right': ObjectId('6231ca6253ee8cc17693a51f')}, 'values': {'left': 2, 'right': 5}}
+{'_id': ObjectId('6231ca6253ee8cc17693a51e'), 'children': {'left': None, 'mid': None, 'right': None}, 'values': {'left': 4, 'right': None}}
+{'_id': ObjectId('6231ca6253ee8cc17693a51f'), 'children': {'left': None, 'mid': None, 'right': None}, 'values': {'left': 10, 'right': None}}
+{'_id': 'leaf_left', 'children': {'left': None, 'mid': None, 'right': None}, 'values': {'left': 0, 'right': 1}}
