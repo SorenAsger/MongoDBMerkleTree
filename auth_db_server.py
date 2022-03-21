@@ -40,12 +40,22 @@ class MongoDB(DatabaseInterface):
         # should children be sorted?
         return Node(node_id, sorted(values), children_ids)
 
-    def create_node(self, key) -> 'Node':
-        """
-        Inserts a node into the database and returns a Node object with the correct id
-        :param key: Initial key of the node, this is considered the left value
-        """
-        pass
+    """
+    Inserts a node into the database and returns a Node object with the correct id
+    :param key: Initial key of the node, this is considered the left value
+    """
+    def create_node(self, key, children=None) -> 'Node':
+        if children is None:
+            children = [None, None]
+        node = {'children': {'left': children[0],
+                             'mid': None,
+                             'right': children[1]},
+                'values':   {'left': key,
+                             'right': None}}
+
+        node_id = self.nodes.insert_one(node).inserted_id
+        values = [v for v in key if v]
+        return Node(node_id, values, children)
 
     def insert_node(self, node: 'Node'):
         """
