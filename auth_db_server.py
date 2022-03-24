@@ -62,6 +62,7 @@ class MongoDB(DatabaseInterface):
         Inserts a node into the underlying mongodb
         :param node: node object to be inserted
         """
+
         def create_mongodb_node():
             pass
 
@@ -292,7 +293,6 @@ def insert_3_node_3_parent(value, insert_location: 'Two3Node', parent: 'Two3Node
     # Delete old node
     nodes.delete_one({"_id": insert_location["_id"]})
     """
-
 
 def insert_3_node_2_parent(value, insert_location, parent):
     values = [insert_location["values"]["left"], insert_location["values"]["right"], value]
