@@ -35,6 +35,8 @@ class Two3Node:
         self.right_child_id = None
         self.mid_child_id = None
         self.hash = None
+        self.parent = None
+        self.child_hashes = []
 
     def is_2_node(self):
         return self.right is None
@@ -42,9 +44,9 @@ class Two3Node:
     def update(self, db: DBInterface.Database23NodeInterface):
         m = hashlib.sha256()
         m.update(get_child_hash(self.left_child_id, db))
-        m.update(get_value_hash(self.left))
+        m.update(get_value_to_hash(self.left))
         m.update(get_child_hash(self.mid_child_id, db))
-        m.update(get_value_hash(self.right))
+        m.update(get_value_to_hash(self.right))
         m.update(get_child_hash(self.right_child_id, db))
         self.hash = m.digest()
         # TODO update hash value in database
@@ -64,7 +66,8 @@ def get_child_hash(child_id, db: DBInterface.Database23NodeInterface) -> bytes:
         raise NotImplementedError()
 
 
-def get_value_hash(value) -> bytes:
+# TODO: Replace with object that has .bytes function ? issue with none? Default value?
+def get_value_to_hash(value) -> bytes:
     if value is not None:
         raise NotImplementedError()
     else:

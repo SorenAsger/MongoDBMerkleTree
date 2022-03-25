@@ -28,7 +28,9 @@ def find_nearest_node_and_parent(value):
     parent = None
     nearest_node = None
     depth = 0
+    path = []
     while current is not None:
+        path.append(current)
         depth += 1
         # If the value is in the current node
         if value in current.get_values():
@@ -52,6 +54,7 @@ def find_nearest_node_and_parent(value):
         parent = nearest_node
         nearest_node = current
         current = dbi.get_23_node_by_id(child_id)
+        current.parent = parent
     print("depth of lookup: " + str(depth) + " for value: " + str(value))
     return nearest_node, parent
 
@@ -77,7 +80,7 @@ def insert_3_node_root(value, insert_location: 'Two3Node'):
     min_node, max_node, mid = split_node(insert_location, value)
 
     insert_location.left_child_id = min_node.node_id
-    insert_location.right_child_id= max_node.node_id
+    insert_location.right_child_id = max_node.node_id
     insert_location.left = mid
     insert_location.right = None
 
@@ -135,7 +138,6 @@ def insert_3_node_2_parent(value, insert_location: 'Two3Node', parent: 'Two3Node
     # TODO: Update upwards and hash thing
 
 
-
 def insert_2_node(value, insert_location):
     # Insert value into node in sorted order
     if value > insert_location.left:
@@ -147,7 +149,6 @@ def insert_2_node(value, insert_location):
     # TODO: Update parent in database and delete insert_location from database
     # TODO: Could maybe be more efficient to not delete insert_location and reuse it instead?
     # TODO: Update upwards and hash thing
-
 
 
 def print_db():

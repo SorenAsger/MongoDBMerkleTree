@@ -17,7 +17,7 @@ class MongoDB(Database23NodeInterface):
     def update_23_node(self, node: 'Two3Node'):
         pass
 
-    def remove_23_node(self, node: 'Node'):
+    def remove_23_node(self, node: 'Two3Node'):
         pass
 
     def get_23_node_by_id(self, node_id):
@@ -47,4 +47,6 @@ class MongoDB(Database23NodeInterface):
                 'values': {'left': key,
                            'right': None}}
         node_id = self.nodes.insert_one(node).inserted_id
-        return Two3Node(node_id, key)
+        two_3_node = Two3Node(node_id, key)
+        # set children
+        return two_3_node
