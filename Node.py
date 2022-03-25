@@ -1,5 +1,6 @@
+import hashlib
+
 import DBInterface
-import DBManagement
 
 
 class Node:
@@ -33,12 +34,20 @@ class Two3Node:
         self.left_child_id = None
         self.right_child_id = None
         self.mid_child_id = None
+        self.hash = None
 
     def is_2_node(self):
         return self.right is None
 
-    def update(self, db: DBInterface.DatabaseInterface):
-        # TODO: updates hash
+    def update(self, db: DBInterface.Database23NodeInterface):
+        m = hashlib.sha256()
+        m.update(get_child_hash(self.left_child_id, db))
+        m.update(get_value_hash(self.left))
+        m.update(get_child_hash(self.mid_child_id, db))
+        m.update(get_value_hash(self.right))
+        m.update(get_child_hash(self.right_child_id, db))
+        self.hash = m.digest()
+        # TODO update hash value in database
         pass
 
     def get_values(self):
@@ -46,3 +55,17 @@ class Two3Node:
 
     def __eq__(self, other: 'Two3Node'):
         return self.node_id == other.node_id
+
+
+def get_child_hash(child_id, db: DBInterface.Database23NodeInterface) -> bytes:
+    if child_id is not None:
+        return db.get_23_node_by_id(child_id).hash
+    else:
+        raise NotImplementedError()
+
+
+def get_value_hash(value) -> bytes:
+    if value is not None:
+        raise NotImplementedError()
+    else:
+        raise NotImplementedError()

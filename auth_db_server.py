@@ -8,6 +8,8 @@ from DBManagement import MongoDB
 # client = MongoClient('localhost', 27017)
 # db = client.test_database
 # nodes = db.nodes
+from Node import Two3Node
+
 root_id = "root"
 
 dbi = MongoDB()
@@ -56,7 +58,7 @@ def find_nearest_node_and_parent(value):
 
 def insert(value):
     insertion_node, parent = find_nearest_node_and_parent(value)
-    if insertion_node is not None and value in insertion_node:
+    if insertion_node is not None and value in [insertion_node.left, insertion_node.right]:
         print("value " + str(value) + " is already in the tree.")
     elif insertion_node is None:
         insert_empty_tree(value)
@@ -70,24 +72,18 @@ def insert(value):
         insert_3_node_3_parent(value, insertion_node, parent)
 
 
-def insert_3_node_root(value, insert_location):
+def insert_3_node_root(value, insert_location: 'Two3Node'):
     # TODO Split here
-    values = [insert_location["values"]["left"], insert_location["values"]["right"], value]
-    values.sort()
-    min = values[0]
-    mid = values[1]
-    max = values[2]
+    min_node, max_node, mid = split_node(insert_location, value)
 
-    # Create 2 new nodes for min and max
-    min_node = {'children': {'left': None, 'mid': None, 'right': None}, 'values': {'left': min, 'right': None}}
-    max_node = {'children': {'left': None, 'mid': None, 'right': None}, 'values': {'left': max, 'right': None}}
-    min_node_id = nodes.insert_one(min_node).inserted_id
-    max_node_id = nodes.insert_one(max_node).inserted_id
+    insert_location.left_child_id = min_node.node_id
+    insert_location.right_child_id= max_node.node_id
+    insert_location.left = mid
+    insert_location.right = None
 
-    insert_location["children"]["left"] = min_node_id
-    insert_location["children"]["right"] = max_node_id
-    insert_location["values"]["left"] = mid
-    insert_location["values"]["right"] = None
+    # TODO: Update parent in database and delete insert_location from database
+    # TODO: Could maybe be more efficient to not delete insert_location and reuse it instead?
+    # TODO: Update upwards and hash thing
 
     update_value = {"$set": {'children': insert_location["children"], 'values': insert_location["values"]}}
     filter = {"_id": insert_location["_id"]}
@@ -95,9 +91,7 @@ def insert_3_node_root(value, insert_location):
 
 
 def insert_empty_tree(value):
-    root = {"_id": "root", 'children': {'left': None, 'mid': None, 'right': None},
-            'values': {'left': value, 'right': None}}
-    nodes.insert_one(root)
+    dbi.create_root(value)
 
 
 def insert_3_node_3_parent(value, insert_location: 'Two3Node', parent: 'Two3Node'):
@@ -121,60 +115,44 @@ def insert_3_node_3_parent(value, insert_location: 'Two3Node', parent: 'Two3Node
     parent.mid_child_id = None
     # TODO: Update parent in database and delete insert_location from database
     # TODO: Could maybe be more efficient to not delete insert_location and reuse it instead?
+    # TODO: Update upwards and hash thing
 
 
-def insert_3_node_2_parent(value, insert_location, parent):
-    values = [insert_location["values"]["left"], insert_location["values"]["right"], value]
-    values.sort()
-    min = values[0]
-    mid = values[1]
-    max = values[2]
-
+def insert_3_node_2_parent(value, insert_location: 'Two3Node', parent: 'Two3Node'):
     # Create 2 new nodes for min and max
-    min_node = {'children': {'left': None, 'mid': None, 'right': None}, 'values': {'left': min, 'right': None}}
-    max_node = {'children': {'left': None, 'mid': None, 'right': None}, 'values': {'left': max, 'right': None}}
-    min_node_id = nodes.insert_one(min_node).inserted_id
-    max_node_id = nodes.insert_one(max_node).inserted_id
+    min_node, max_node, mid = split_node(insert_location, value)
 
-    # Put middle value in parent and update it to point to the 2 new children
-    if value > parent["values"]["left"]:
-        parent["children"]["mid"] = min_node_id
-        parent["children"]["right"] = max_node_id
-        parent["values"]["right"] = mid
+    parent.left_child_id = min_node.node_id
+    parent.right_child_id = max_node.node_id
+
+    if mid > parent.left:
+        parent.right = mid
     else:
-        parent["children"]["left"] = min_node_id
-        parent["children"]["mid"] = max_node_id
-        parent["values"]["right"] = parent["values"]["left"]
-        parent["values"]["left"] = mid
-    update_value = {"$set": {'children': parent["children"], 'values': parent["values"]}}
-    filter = {"_id": parent["_id"]}
-    nodes.update_one(filter, update_value);
-    # Delete old node
-    nodes.delete_one({"_id": insert_location["_id"]})
+        parent.right = parent.left
+        parent.left = mid
+    # TODO: Update parent in database and delete insert_location from database
+    # TODO: Could maybe be more efficient to not delete insert_location and reuse it instead?
+    # TODO: Update upwards and hash thing
+
 
 
 def insert_2_node(value, insert_location):
-    values = insert_location["values"]
     # Insert value into node in sorted order
-    if (values["left"] < value):
-        values["right"] = value
+    if value > insert_location.left:
+        insert_location.right = value
     else:
-        values["right"] = values["left"]
-        values["left"] = value
+        insert_location.right = insert_location.left
+        insert_location.left = value
     # push update to DB
-    update_value = {"$set": {'values': values}}
-    filter = {"_id": insert_location["_id"]}
-    nodes.update_one(filter, update_value)
+    # TODO: Update parent in database and delete insert_location from database
+    # TODO: Could maybe be more efficient to not delete insert_location and reuse it instead?
+    # TODO: Update upwards and hash thing
 
-
-def get_node_by_id(node_id):
-    node = nodes.find_one({'_id': node_id})
-    return node
 
 
 def print_db():
     print("\nAll records in DB")
-    cursor = nodes.find()
+    cursor = dbi.nodes.find()
     for record in cursor:
         print(record)
 

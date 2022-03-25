@@ -11,7 +11,6 @@ class MongoDB(Database23NodeInterface):
         self.nodes = self.db.nodes
         self.root_id = "root"
 
-
     def update_up_from_23_node(self, node: 'Two3Node'):
         pass
 
@@ -20,7 +19,6 @@ class MongoDB(Database23NodeInterface):
 
     def remove_23_node(self, node: 'Node'):
         pass
-
 
     def get_23_node_by_id(self, node_id):
         node = self.nodes.find_one({'_id': node_id})
@@ -34,6 +32,11 @@ class MongoDB(Database23NodeInterface):
         nod.mid_child_id = children_ids[1]
         # should children be sorted?
         return nod
+
+    def create_root(self, value):
+        root = {"_id": "root", 'children': {'left': None, 'mid': None, 'right': None},
+                'values': {'left': value, 'right': None}}
+        return Two3Node(root["_id"], value)
 
     def create_23_node(self, key, children=None) -> 'Two3Node':
         if children is None:

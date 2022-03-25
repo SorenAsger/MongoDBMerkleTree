@@ -17,7 +17,7 @@ class Database23NodeInterface:
     def update_up_from_23_node(self, node: 'Two3Node'):
         raise NotImplementedError()
 
-    def get_23_node_by_id(self, node_id):
+    def get_23_node_by_id(self, node_id) -> 'Two3Node':
         raise NotImplementedError()
 
     def create_23_node(self, key, children=None) -> 'Two3Node':
@@ -26,5 +26,8 @@ class Database23NodeInterface:
     def update_23_node(self, node: 'Two3Node'):
         raise NotImplementedError()
 
-    def remove_23_node(self, node: 'Node'):
+    def remove_23_node(self, node: 'Two3Node'):
+        raise NotImplementedError()
+
+    def create_root(self, value) -> 'Two3Node':
         raise NotImplementedError()
