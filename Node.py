@@ -26,7 +26,6 @@ class Node:
 
 
 class Two3Node:
-
     def __init__(self, node_id, left):
         self.left = left
         self.node_id = node_id

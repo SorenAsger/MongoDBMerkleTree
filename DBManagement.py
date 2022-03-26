@@ -15,10 +15,15 @@ class MongoDB(Database23NodeInterface):
         pass
 
     def update_23_node(self, node: 'Two3Node'):
-        pass
+        children = {'left': node.left_child_id, 'mid': node.mid_child_id, 'right': node.right_child_id}
+        values = {'left': node.left, 'right': node.right}
+        update_value = {"$set": {'children': children, 'values': values}}
+        filter = {"_id": node["_id"]}
+        self.nodes.update_one(filter, update_value)
 
     def remove_23_node(self, node: 'Two3Node'):
-        pass
+        filter = {"_id": node.node_id}
+        self.nodes.delete_one(filter)
 
     def get_23_node_by_id(self, node_id):
         node = self.nodes.find_one({'_id': node_id})
