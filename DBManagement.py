@@ -22,15 +22,11 @@ class MongoDB(Database23NodeInterface):
 
     def get_23_node_by_id(self, node_id):
         node = self.nodes.find_one({'_id': node_id})
-        # reads values and children and removes none values
-        values = node["values"].values()
-        children_ids = node["children"].values()
-        nod = Two3Node(node_id, values[0])
-        nod.right = values[1]
-        nod.left_child_id = children_ids[0]
-        nod.right_child_id = children_ids[2]
-        nod.mid_child_id = children_ids[1]
-        # should children be sorted?
+        nod = Two3Node(node_id, node["values"]['left'])
+        nod.right = node["values"]['right']
+        nod.left_child_id = node["children"]["left"]
+        nod.right_child_id = node["children"]["mid"]
+        nod.mid_child_id = node["children"]["right"]
         return nod
 
     def create_root(self, value):
