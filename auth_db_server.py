@@ -7,10 +7,10 @@ from Node import Two3Node
 
 class auth_db_server:
 
-    def __init__(self, dbi: Database23NodeInterface):
+    def __init__(self, dbi=None):
         print("Server started.")
         self.root_id = "root"
-        self.dbi = dbi
+        self.dbi = MongoDB()
 
     def split_node(self, node, value, left_children=None, right_children=None):
         values = [node.left, node.right, value]
@@ -26,6 +26,7 @@ class auth_db_server:
         depth = 0
         path = []
         while current is not None:
+            current.parent = parent
             path.append(current)
             depth += 1
             # If the value is in the current node
@@ -50,7 +51,7 @@ class auth_db_server:
             parent = nearest_node
             nearest_node = current
             current = self.dbi.get_23_node_by_id(child_id)
-            current.parent = parent
+
         print("depth of lookup: " + str(depth) + " for value: " + str(value))
         return nearest_node, parent
 
