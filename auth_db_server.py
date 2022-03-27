@@ -98,9 +98,10 @@ class auth_db_server:
         # We now remove the node that was split and replaced with min and max
         all_children = [child for child in all_children if child != insert_location]
         all_children.sort(key=lambda x: x.left)
+        all_children_id = [child.node_id for child in all_children]
 
-        parent_min, parent_max, mid = self.split_node(parent, mid, left_children=all_children[:2],
-                                                      right_children=all_children[2:])
+        parent_min, parent_max, mid = self.split_node(parent, mid, left_children=all_children_id[:2],
+                                                      right_children=all_children_id[2:])
         parent.left_child_id = parent_min
         parent.right_child_id = parent_max
         parent.mid_child_id = None

@@ -51,5 +51,6 @@ class MongoDB(Database23NodeInterface):
                            'right': None}}
         node_id = self.nodes.insert_one(node).inserted_id
         two_3_node = Two3Node(node_id, key)
-        # set children
+        two_3_node.left_child_id = children[0]
+        two_3_node.right_child_id = children[1]
         return two_3_node
