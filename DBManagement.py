@@ -18,7 +18,7 @@ class MongoDB(Database23NodeInterface):
         children = {'left': node.left_child_id, 'mid': node.mid_child_id, 'right': node.right_child_id}
         values = {'left': node.left, 'right': node.right}
         update_value = {"$set": {'children': children, 'values': values}}
-        filter = {"_id": node["_id"]}
+        filter = {"_id": node.node_id}
         self.nodes.update_one(filter, update_value)
 
     def remove_23_node(self, node: 'Two3Node'):

@@ -3,8 +3,6 @@ from DBManagement import MongoDB
 from Node import Two3Node
 
 
-
-
 class auth_db_server:
 
     def __init__(self, dbi=None):
