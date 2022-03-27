@@ -102,8 +102,8 @@ class auth_db_server:
 
         parent_min, parent_max, mid = self.split_node(parent, mid, left_children=all_children_id[:2],
                                                       right_children=all_children_id[2:])
-        parent.left_child_id = parent_min
-        parent.right_child_id = parent_max
+        parent.left_child_id = parent_min.node_id
+        parent.right_child_id = parent_max.node_id
         parent.mid_child_id = None
         self.dbi.update_23_node(parent)
         self.dbi.remove_23_node(insert_location)
