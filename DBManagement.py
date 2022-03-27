@@ -34,8 +34,8 @@ class MongoDB(Database23NodeInterface):
         nod = Two3Node(node_id, node["values"]["left"])
         nod.right = node["values"]["right"]
         nod.left_child_id = node["children"]["left"]
-        nod.right_child_id = node["children"]["mid"]
-        nod.mid_child_id = node["children"]["right"]
+        nod.mid_child_id = node["children"]["mid"]
+        nod.right_child_id = node["children"]["right"]
         return nod
 
     def create_root(self, value, root_id):
