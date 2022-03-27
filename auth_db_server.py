@@ -119,7 +119,7 @@ class auth_db_server:
         # Create 2 new nodes for min and max
         min_node, max_node, mid = self.split_node(insert_location, value)
         print("3_n_2")
-        print([parent.left_child_id, parent.right_child_id])
+        print(parent)
         if insert_location.node_id == parent.left_child_id:
             parent.left_child_id = min_node.node_id
             parent.mid_child_id = max_node.node_id
@@ -135,7 +135,7 @@ class auth_db_server:
         # TODO: Update parent in database and delete insert_location from database
         # TODO: Could maybe be more efficient to not delete insert_location and reuse it instead?
         # TODO: Update upwards and hash thing
-        print([parent.left_child_id, parent.mid_child_id, parent.right_child_id])
+        print(parent)
         self.dbi.update_23_node(parent)
         self.dbi.remove_23_node(insert_location)
 

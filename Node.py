@@ -57,6 +57,10 @@ class Two3Node:
     def __eq__(self, other: 'Two3Node'):
         return other is not None and self.node_id == other.node_id
 
+    def __str__(self):
+        return f"ID: {self.node_id} \n Children ids {self.left_child_id}, {self.mid_child_id}, {self.right_child_id} \n" \
+               f" Values {self.left}, {self.right}"
+
 
 def get_child_hash(child_id, db: DBInterface.Database23NodeInterface) -> bytes:
     if child_id is not None:
