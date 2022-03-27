@@ -26,9 +26,11 @@ class MongoDB(Database23NodeInterface):
         self.nodes.delete_one(filter)
 
     def get_23_node_by_id(self, node_id):
+        if node_id is None:
+            return None
         node = self.nodes.find_one({'_id': node_id})
-        nod = Two3Node(node_id, node["values"]['left'])
-        nod.right = node["values"]['right']
+        nod = Two3Node(node_id, node["values"]["left"])
+        nod.right = node["values"]["right"]
         nod.left_child_id = node["children"]["left"]
         nod.right_child_id = node["children"]["mid"]
         nod.mid_child_id = node["children"]["right"]

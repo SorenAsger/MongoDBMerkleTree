@@ -1,25 +1,26 @@
+from DBInterface import Database23NodeInterface
 from DBManagement import MongoDB
 from Node import Two3Node
 
-root_id = "root"
 
-dbi = MongoDB()
 
 
 class auth_db_server:
 
-    def __init__(self):
+    def __init__(self, dbi: Database23NodeInterface):
         print("Server started.")
+        self.root_id = "root"
+        self.dbi = dbi
 
     def split_node(self, node, value, left_children=None, right_children=None):
         values = [node.left, node.right, value]
         values.sort()
-        min_node = dbi.create_23_node(values[0], left_children)
-        max_node = dbi.create_23_node(values[2], right_children)
+        min_node = self.dbi.create_23_node(values[0], left_children)
+        max_node = self.dbi.create_23_node(values[2], right_children)
         return min_node, max_node, values[1]
 
     def find_nearest_node_and_parent(self, value):
-        current = dbi.get_23_node_by_id(root_id)
+        current = self.dbi.get_23_node_by_id(self.root_id)
         parent = None
         nearest_node = None
         depth = 0
@@ -48,7 +49,7 @@ class auth_db_server:
                     child_id = current.mid_child_id
             parent = nearest_node
             nearest_node = current
-            current = dbi.get_23_node_by_id(child_id)
+            current = self.dbi.get_23_node_by_id(child_id)
             current.parent = parent
         print("depth of lookup: " + str(depth) + " for value: " + str(value))
         return nearest_node, parent
@@ -80,18 +81,18 @@ class auth_db_server:
         # TODO: Update parent in database and delete insert_location from database
         # TODO: Could maybe be more efficient to not delete insert_location and reuse it instead?
         # TODO: Update upwards and hash thing
-        dbi.update_23_node(insert_location)
+        self.dbi.update_23_node(insert_location)
 
     def insert_empty_tree(self, value):
-        dbi.create_root(value)
+        self.dbi.create_root(value)
 
     def insert_3_node_3_parent(self, value, insert_location: 'Two3Node', parent: 'Two3Node'):
         min_node, max_node, mid = self.split_node(insert_location, value)
 
         # Now we need to reconstruct pointers from parent min and parent max to the children
-        left_child = dbi.get_23_node_by_id(parent.left_child_id)
-        mid_child = dbi.get_23_node_by_id(parent.mid_child_id)
-        right_child = dbi.get_23_node_by_id(parent.right_child_id)
+        left_child = self.dbi.get_23_node_by_id(parent.left_child_id)
+        mid_child = self.dbi.get_23_node_by_id(parent.mid_child_id)
+        right_child = self.dbi.get_23_node_by_id(parent.right_child_id)
 
         all_children = [left_child, mid_child, right_child, min_node, max_node]
         # all_children contains the previous children (left, mid, right) and the new nodes (min and max)
@@ -138,6 +139,6 @@ class auth_db_server:
 
     def print_db(self):
         print("\nAll records in DB")
-        cursor = dbi.nodes.find()
+        cursor = self.dbi.nodes.find()
         for record in cursor:
             print(record)
