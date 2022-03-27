@@ -117,6 +117,7 @@ class auth_db_server:
 
         parent.left_child_id = min_node.node_id
         parent.right_child_id = max_node.node_id
+        parent.mid_child_id = None
 
         if mid > parent.left:
             parent.right = mid
