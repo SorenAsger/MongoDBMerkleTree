@@ -57,7 +57,6 @@ class auth_db_server:
         if self.root_id is None:
             self.root_id = "root"
             self.dbi.create_root(value, self.root_id)
-            print("huh")
             return
         insertion_node, parent = self.find_nearest_node_and_parent(value)
         if insertion_node is not None and value in [insertion_node.left, insertion_node.right]:
@@ -91,21 +90,17 @@ class auth_db_server:
         min_node, max_node, mid = self.split_node(insert_location, value)
 
         # Now we need to reconstruct pointers from parent min and parent max to the children
-        left_child = self.dbi.get_23_node_by_id(parent.left_child_id)
-        mid_child = self.dbi.get_23_node_by_id(parent.mid_child_id)
-        right_child = self.dbi.get_23_node_by_id(parent.right_child_id)
 
-        if insert_location == left_child:
-            all_children = [min_node, max_node, mid_child, right_child]
-        elif insert_location == mid_child:
-            all_children = [left_child, min_node, max_node, right_child]
+        if insert_location.node_id == parent.left_child_id:
+            all_children_id = [min_node.node_id, max_node, parent.mid_child_id,  parent.right_child_id]
+        elif insert_location.node_id == parent.mid_child_id:
+            all_children_id = [parent.left_child_id, min_node.node_id, max_node.node_id, parent.right_child_id]
         else:
-            all_children = [left_child, mid_child, min_node, max_node]
+            all_children_id = [parent.left_child_id, parent.mid_child_id, min_node.node_id, max_node.node_id]
 
         # all_children contains the previous children (left, mid, right) and the new nodes (min and max)
         # We now remove the node that was split and replaced with min and max
-        all_children_id = [child if child is None else child.node_id for child in all_children]
-
+        print(all_children_id)
         parent_min, parent_max, mid = self.split_node(parent, mid, left_children=all_children_id[:2],
                                                       right_children=all_children_id[2:])
         parent.left_child_id = parent_min.node_id
@@ -121,9 +116,12 @@ class auth_db_server:
         # Create 2 new nodes for min and max
         min_node, max_node, mid = self.split_node(insert_location, value)
 
-        parent.left_child_id = min_node.node_id
-        parent.right_child_id = max_node.node_id
-        parent.mid_child_id = None
+        if insert_location.node_id == parent.left_child_id:
+            parent.left_child_id = min_node.node_id
+            parent.mid_child_id = max_node.node_id
+        else:
+            parent.mid_child_id = min_node.node_id
+            parent.right_child_id = max_node.node_id
 
         if mid > parent.left:
             parent.right = mid
