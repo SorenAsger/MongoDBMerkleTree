@@ -105,6 +105,8 @@ class auth_db_server:
         parent.left_child_id = parent_min
         parent.right_child_id = parent_max
         parent.mid_child_id = None
+        self.dbi.update_23_node(parent)
+        self.dbi.remove_23_node(insert_location)
         # TODO: Update parent in database and delete insert_location from database
         # TODO: Could maybe be more efficient to not delete insert_location and reuse it instead?
         # TODO: Update upwards and hash thing
@@ -124,6 +126,8 @@ class auth_db_server:
         # TODO: Update parent in database and delete insert_location from database
         # TODO: Could maybe be more efficient to not delete insert_location and reuse it instead?
         # TODO: Update upwards and hash thing
+        self.dbi.update_23_node(parent)
+        self.dbi.remove_23_node(insert_location)
 
     def insert_2_node(self, value, insert_location):
         # Insert value into node in sorted order
@@ -133,8 +137,7 @@ class auth_db_server:
             insert_location.right = insert_location.left
             insert_location.left = value
         # push update to DB
-        # TODO: Update parent in database and delete insert_location from database
-        # TODO: Could maybe be more efficient to not delete insert_location and reuse it instead?
+        self.dbi.update_23_node(insert_location)
         # TODO: Update upwards and hash thing
 
     def print_db(self):
