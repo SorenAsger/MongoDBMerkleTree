@@ -29,5 +29,8 @@ class Database23NodeInterface:
     def remove_23_node(self, node: 'Two3Node'):
         raise NotImplementedError()
 
-    def create_root(self, value) -> 'Two3Node':
+    def create_root(self, value, root_id) -> 'Two3Node':
+        raise NotImplementedError()
+
+    def destroy_db(self):
         raise NotImplementedError()

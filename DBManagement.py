@@ -29,6 +29,8 @@ class MongoDB(Database23NodeInterface):
         if node_id is None:
             return None
         node = self.nodes.find_one({'_id': node_id})
+        print(node_id)
+        print(node)
         nod = Two3Node(node_id, node["values"]["left"])
         nod.right = node["values"]["right"]
         nod.left_child_id = node["children"]["left"]
@@ -36,9 +38,10 @@ class MongoDB(Database23NodeInterface):
         nod.mid_child_id = node["children"]["right"]
         return nod
 
-    def create_root(self, value):
-        root = {"_id": "root", 'children': {'left': None, 'mid': None, 'right': None},
+    def create_root(self, value, root_id):
+        root = {"_id": root_id, 'children': {'left': None, 'mid': None, 'right': None},
                 'values': {'left': value, 'right': None}}
+        self.nodes.insert_one(root)
         return Two3Node(root["_id"], value)
 
     def create_23_node(self, key, children=None) -> 'Two3Node':

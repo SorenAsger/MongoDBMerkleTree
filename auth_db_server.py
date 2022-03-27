@@ -5,10 +5,10 @@ from Node import Two3Node
 
 class auth_db_server:
 
-    def __init__(self, dbi=None):
+    def __init__(self, dbi: Database23NodeInterface):
         print("Server started.")
-        self.root_id = "root"
-        self.dbi = MongoDB()
+        self.root_id = None
+        self.dbi = dbi
 
     def split_node(self, node, value, left_children=None, right_children=None):
         values = [node.left, node.right, value]
@@ -54,6 +54,11 @@ class auth_db_server:
         return nearest_node, parent
 
     def insert(self, value):
+        if self.root_id is None:
+            self.root_id = "root"
+            self.dbi.create_root(value, self.root_id)
+            print("huh")
+            return
         insertion_node, parent = self.find_nearest_node_and_parent(value)
         if insertion_node is not None and value in [insertion_node.left, insertion_node.right]:
             print("value " + str(value) + " is already in the tree.")
@@ -82,9 +87,6 @@ class auth_db_server:
         # TODO: Update upwards and hash thing
         self.dbi.update_23_node(insert_location)
 
-    def insert_empty_tree(self, value):
-        self.dbi.create_root(value)
-
     def insert_3_node_3_parent(self, value, insert_location: 'Two3Node', parent: 'Two3Node'):
         min_node, max_node, mid = self.split_node(insert_location, value)
 
@@ -93,12 +95,16 @@ class auth_db_server:
         mid_child = self.dbi.get_23_node_by_id(parent.mid_child_id)
         right_child = self.dbi.get_23_node_by_id(parent.right_child_id)
 
-        all_children = [left_child, mid_child, right_child, min_node, max_node]
+        if insert_location == left_child:
+            all_children = [min_node, max_node, mid_child, right_child]
+        elif insert_location == mid_child:
+            all_children = [left_child, min_node, max_node, right_child]
+        else:
+            all_children = [left_child, mid_child, min_node, max_node]
+
         # all_children contains the previous children (left, mid, right) and the new nodes (min and max)
         # We now remove the node that was split and replaced with min and max
-        all_children = [child for child in all_children if child != insert_location]
-        all_children.sort(key=lambda x: x.left)
-        all_children_id = [child.node_id for child in all_children]
+        all_children_id = [child if child is None else child.node_id for child in all_children]
 
         parent_min, parent_max, mid = self.split_node(parent, mid, left_children=all_children_id[:2],
                                                       right_children=all_children_id[2:])

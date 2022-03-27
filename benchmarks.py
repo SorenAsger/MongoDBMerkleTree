@@ -1,9 +1,10 @@
 import cProfile
 import random
 
+from DBManagement import MongoDB
 from auth_db_server import auth_db_server
 
-server = auth_db_server()
+server = auth_db_server(MongoDB())
 
 def insertmany():
     for i in range(0, 1000):
@@ -17,4 +18,5 @@ def insert_sorted():
 
 server.destroy_db()
 server.print_db()
-cProfile.run('insert_sorted()')
+insert_sorted()
+#cProfile.run('insert_sorted()')
