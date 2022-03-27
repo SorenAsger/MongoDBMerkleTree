@@ -32,15 +32,15 @@ class auth_db_server:
                 return current, nearest_node
             # 2-node
             if current.is_2_node():
-                if value < current.left_value:
+                if value < current.left:
                     child_id = current.left_child_id
                 else:
                     child_id = current.right_child_id
             # 3-node
             else:
-                if value < current.left_value:
+                if value < current.left:
                     child_id = current.left_child_id
-                elif value > current.right_value:
+                elif value > current.right:
                     # not super pretty, maybe abstract away into a method of Node?
                     # Have it return the correct child id
                     child_id = current.right_child_id
