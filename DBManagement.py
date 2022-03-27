@@ -54,3 +54,6 @@ class MongoDB(Database23NodeInterface):
         two_3_node.left_child_id = children[0]
         two_3_node.right_child_id = children[1]
         return two_3_node
+
+    def destroy_db(self):
+        self.nodes.drop()

@@ -146,3 +146,6 @@ class auth_db_server:
         cursor = self.dbi.nodes.find()
         for record in cursor:
             print(record)
+
+    def destroy_db(self):
+        self.dbi.destroy_db()
