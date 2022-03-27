@@ -12,7 +12,7 @@ def insertmany():
     server.print_db()
 
 def insert_sorted():
-    for i in range(0, 100):
+    for i in range(0, 15):
         server.insert(i)
     server.print_db()
 

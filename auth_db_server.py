@@ -104,11 +104,17 @@ class auth_db_server:
         # all_children contains the previous children (left, mid, right) and the new nodes (min and max)
         # We now remove the node that was split and replaced with min and max
         print(all_children_id)
-        parent_min, parent_max, mid = self.split_node(parent, mid, left_children=all_children_id[:2],
+        parent_min, parent_max, parent_mid = self.split_node(parent, mid, left_children=all_children_id[:2],
                                                       right_children=all_children_id[2:])
         parent.left_child_id = parent_min.node_id
         parent.right_child_id = parent_max.node_id
         parent.mid_child_id = None
+        parent.left = parent_mid
+        parent.right = None
+        print("parents")
+        print(parent)
+        print(parent_min)
+        print(parent_max)
         self.dbi.update_23_node(parent)
         self.dbi.remove_23_node(insert_location)
         # TODO: Update parent in database and delete insert_location from database

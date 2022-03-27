@@ -29,7 +29,6 @@ class MongoDB(Database23NodeInterface):
         if node_id is None:
             return None
         node = self.nodes.find_one({'_id': node_id})
-        print(node_id)
         print(node)
         nod = Two3Node(node_id, node["values"]["left"])
         nod.right = node["values"]["right"]
