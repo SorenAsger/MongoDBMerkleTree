@@ -46,11 +46,18 @@ class MongoDB(Database23NodeInterface):
     def create_23_node(self, key, children=None) -> 'Two3Node':
         if children is None:
             children = [None, None, None]
-        node = {'children': {'left': children[0],
-                             'mid': children[1],
-                             'right': children[2]},
-                'values': {'left': key,
-                           'right': None}}
+        if len(children) == 3:
+            node = {'children': {'left': children[0],
+                                 'mid': children[1],
+                                 'right': children[2]},
+                    'values': {'left': key,
+                               'right': None}}
+        else:
+            node = {'children': {'left': children[0],
+                                 'mid': None,
+                                 'right': children[1]},
+                    'values': {'left': key,
+                               'right': None}}
         node_id = self.nodes.insert_one(node).inserted_id
         two_3_node = Two3Node(node_id, key)
         two_3_node.left_child_id = children[0]
