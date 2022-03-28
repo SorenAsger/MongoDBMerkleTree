@@ -59,10 +59,12 @@ class auth_db_server:
             self.dbi.create_root(value, self.root_id)
             return
         insertion_node, parent = self.find_nearest_node_and_parent(value)
+        self.insert_at(insertion_node, value)
+
+    def insert_at(self, insertion_node: 'Two3Node', value):
+        parent = insertion_node.parent
         if insertion_node is not None and value in [insertion_node.left, insertion_node.right]:
             print("value " + str(value) + " is already in the tree.")
-        elif insertion_node is None:
-            self.insert_empty_tree(value)
         elif insertion_node.is_2_node():
             self.insert_2_node(value, insertion_node)
         elif parent is None:
@@ -74,6 +76,7 @@ class auth_db_server:
 
     def insert_3_node_root(self, value, insert_location: 'Two3Node'):
         # TODO Split here
+        print("Rootinsert", insert_location.node_id)
         min_node, max_node, mid = self.split_node(insert_location, value)
 
         insert_location.left_child_id = min_node.node_id
@@ -91,11 +94,12 @@ class auth_db_server:
 
         # Now we need to reconstruct pointers from parent min and parent max to the children
         print("3_n_3")
+        print(parent)
         print([parent.left_child_id, parent.mid_child_id, parent.right_child_id])
         print([parent.left, parent.right])
 
         if insert_location.node_id == parent.left_child_id:
-            all_children_id = [min_node.node_id, max_node, parent.mid_child_id,  parent.right_child_id]
+            all_children_id = [min_node.node_id, max_node, parent.mid_child_id, parent.right_child_id]
         elif insert_location.node_id == parent.mid_child_id:
             all_children_id = [parent.left_child_id, min_node.node_id, max_node.node_id, parent.right_child_id]
         else:
@@ -104,17 +108,30 @@ class auth_db_server:
         # all_children contains the previous children (left, mid, right) and the new nodes (min and max)
         # We now remove the node that was split and replaced with min and max
         print(all_children_id)
-        parent_min, parent_max, parent_mid = self.split_node(parent, mid, left_children=all_children_id[:2],
-                                                      right_children=all_children_id[2:])
-        parent.left_child_id = parent_min.node_id
-        parent.right_child_id = parent_max.node_id
-        parent.mid_child_id = None
-        parent.left = parent_mid
-        parent.right = None
+        # parent_min, parent_max, parent_mid = self.split_node(parent, mid, left_children=all_children_id[:2],
+        #                                                    right_children=all_children_id[2:])
+        self.insert_at(parent, mid)
+        parent_min = self.dbi.get_23_node_by_id(parent.left_child_id)
+        parent_max = self.dbi.get_23_node_by_id(parent.right_child_id)
+        print("parentsbefore")
+        print(parent)
+        print(parent_min)
+        print(parent_max)
+        parent_min.left_child_id = all_children_id[0]
+        parent_min.right_child_id = all_children_id[1]
+        parent_max.left_child_id = all_children_id[2]
+        parent_max.right_child_id = all_children_id[3]
+        # parent.left_child_id = parent_min.node_id
+        # parent.right_child_id = parent_max.node_id
+        # parent.mid_child_id = None
+        # parent.left = parent_mid
+        # parent.right = None
         print("parents")
         print(parent)
         print(parent_min)
         print(parent_max)
+        # print(self.dbi.get_23_node_by_id(parent_min.left_child_id))
+        print("parents_end")
         self.dbi.update_23_node(parent)
         self.dbi.remove_23_node(insert_location)
         # TODO: Update parent in database and delete insert_location from database
@@ -124,6 +141,13 @@ class auth_db_server:
     def insert_3_node_2_parent(self, value, insert_location: 'Two3Node', parent: 'Two3Node'):
         # Create 2 new nodes for min and max
         min_node, max_node, mid = self.split_node(insert_location, value)
+        #values = [node.left, node.right, value]
+        #values.sort()
+        #mid = values[1]
+        #self.insert_at(parent, mid)
+
+        #min_node = self.dbi.create_23_node(values[0], left_children)
+        #max_node = self.dbi.create_23_node(values[2], right_children)
         print("3_n_2")
         print(parent)
         if insert_location.node_id == parent.left_child_id:
@@ -164,3 +188,15 @@ class auth_db_server:
 
     def destroy_db(self):
         self.dbi.destroy_db()
+
+    def tree_to_str(self, node: 'Two3Node', depth = 0):
+        if node is None:
+            return "None"
+        left = self.tree_to_str(self.dbi.get_23_node_by_id(node.left_child_id), depth+1)
+        mid = self.tree_to_str(self.dbi.get_23_node_by_id(node.mid_child_id), depth + 1)
+        right = self.tree_to_str(self.dbi.get_23_node_by_id(node.right_child_id), depth + 1)
+        tabs = "\t" * depth
+        return node.__str__() + f"\n {tabs} | {left} \n {tabs} | {mid} \n {tabs} | {right}"
+
+    def print_tree(self):
+        print(self.tree_to_str(self.dbi.get_23_node_by_id(self.root_id)))

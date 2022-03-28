@@ -12,9 +12,10 @@ def insertmany():
     server.print_db()
 
 def insert_sorted():
-    for i in range(0, 15):
+    for i in range(0, 25):
         server.insert(i)
     server.print_db()
+    server.print_tree()
 
 server.destroy_db()
 server.print_db()
