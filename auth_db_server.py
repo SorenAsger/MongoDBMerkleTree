@@ -26,7 +26,7 @@ class auth_db_server:
         depth = 0
         path = []
         while current is not None:
-            current.parent = parent
+            current.parent = nearest_node
             path.append(current)
             depth += 1
             # If the value is in the current node
@@ -102,7 +102,7 @@ class auth_db_server:
         print([parent.left, parent.right])
 
         if insert_location.node_id == parent.left_child_id:
-            all_children_id = [min_node.node_id, max_node, parent.mid_child_id, parent.right_child_id]
+            all_children_id = [min_node.node_id, max_node.node_id, parent.mid_child_id, parent.right_child_id]
         elif insert_location.node_id == parent.mid_child_id:
             all_children_id = [parent.left_child_id, min_node.node_id, max_node.node_id, parent.right_child_id]
         else:
@@ -115,12 +115,12 @@ class auth_db_server:
         print(all_children_id)
         # parent_min, parent_max, parent_mid = self.split_node(parent, mid, left_children=all_children_id[:2],
         #                                                    right_children=all_children_id[2:])
-        parent_min = self.dbi.get_23_node_by_id(parent.left_child_id)
-        parent_max = self.dbi.get_23_node_by_id(parent.right_child_id)
+        #parent_min = self.dbi.get_23_node_by_id(parent.left_child_id)
+        #parent_max = self.dbi.get_23_node_by_id(parent.right_child_id)
         print("parentsbefore")
         print(parent)
-        print(parent_min)
-        print(parent_max)
+        #print(parent_min)
+        #print(parent_max)
         #parent_min.left_child_id = all_children_id[0]
         #parent_min.right_child_id = all_children_id[1]
         #parent_max.left_child_id = all_children_id[2]
@@ -154,6 +154,7 @@ class auth_db_server:
             node.left = values[1]
             node.right = None
             self.dbi.update_23_node(node)
+            # ROOT CASE SHOULD WORK
         elif parent.is_2_node():
             if node.node_id == parent.left_child_id:
                 parent.left_child_id = min_node.node_id
@@ -173,7 +174,7 @@ class auth_db_server:
             # Need to create a new temp 4 node
             new_values = sorted([parent.left, parent.right, values[1]])
             if node.node_id == parent.left_child_id:
-                new_children_id = [min_node.node_id, max_node, parent.mid_child_id, parent.right_child_id]
+                new_children_id = [min_node.node_id, max_node.node_id, parent.mid_child_id, parent.right_child_id]
             elif node.node_id == parent.mid_child_id:
                 new_children_id = [parent.left_child_id, min_node.node_id, max_node.node_id, parent.right_child_id]
             else:
