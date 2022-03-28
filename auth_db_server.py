@@ -153,6 +153,7 @@ class auth_db_server:
             node.right_child_id = max_node.node_id
             node.left = values[1]
             node.right = None
+            node.mid_child_id = None
             self.dbi.update_23_node(node)
             # ROOT CASE SHOULD WORK
         elif parent.is_2_node():
