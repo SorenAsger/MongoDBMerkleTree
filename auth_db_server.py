@@ -155,9 +155,6 @@ class auth_db_server:
             node.right = None
             self.dbi.update_23_node(node)
         elif parent.is_2_node():
-            parent.right = values[1]
-            parent.left_child_id = min_node.node_id
-            parent.right_child_id = max_node.node_id
             if node.node_id == parent.left_child_id:
                 parent.left_child_id = min_node.node_id
                 parent.mid_child_id = max_node.node_id
