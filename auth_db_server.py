@@ -240,7 +240,7 @@ class auth_db_server:
         mid = self.tree_to_str(self.dbi.get_23_node_by_id(node.mid_child_id), depth + 1)
         right = self.tree_to_str(self.dbi.get_23_node_by_id(node.right_child_id), depth + 1)
         tabs = "\t" * depth
-        return node.__str__() + f"\n {tabs} | {left} \n {tabs} | {mid} \n {tabs} | {right}"
+        return f"Depth {depth} " + node.__str__() + f"\n {tabs} | {left} \n {tabs} | {mid} \n {tabs} | {right}"
 
     def print_tree(self):
         print(self.tree_to_str(self.dbi.get_23_node_by_id(self.root_id)))
