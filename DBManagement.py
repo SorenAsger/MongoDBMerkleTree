@@ -1,6 +1,6 @@
 from pymongo import MongoClient
 from DBInterface import Database23NodeInterface
-from Node import Node, Two3Node
+from Node import Two3Node
 
 
 class MongoDB(Database23NodeInterface):
@@ -11,13 +11,10 @@ class MongoDB(Database23NodeInterface):
         self.nodes = self.db.nodes
         self.root_id = "root"
 
-    def update_up_from_23_node(self, node: 'Two3Node'):
-        pass
-
     def update_23_node(self, node: 'Two3Node'):
         children = {'left': node.left_child_id, 'mid': node.mid_child_id, 'right': node.right_child_id}
         values = {'left': node.left, 'right': node.right}
-        update_value = {"$set": {'children': children, 'values': values}}
+        update_value = {"$set": {'children': children, 'values': values, 'hash': node.hash}}
         filter = {"_id": node.node_id}
         self.nodes.update_one(filter, update_value)
 
@@ -29,7 +26,6 @@ class MongoDB(Database23NodeInterface):
         if node_id is None:
             return None
         node = self.nodes.find_one({'_id': node_id})
-        #print(node)
         nod = Two3Node(node_id, node["values"]["left"])
         nod.right = node["values"]["right"]
         nod.left_child_id = node["children"]["left"]

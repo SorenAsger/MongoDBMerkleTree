@@ -1,10 +1,8 @@
-import hashlib
-
 import DBInterface
+from cryptoUtil import HashFunction
 
 
 class Node:
-
     def __init__(self, node_id, values, children_ids):
         self.node_id = node_id
         self.values = values
@@ -25,9 +23,9 @@ class Node:
         return len(self.values) == 1
 
 
-
 class Two3Node:
     def __init__(self, node_id, left):
+        self.hash_function = HashFunction()
         self.left = left
         self.node_id = node_id
         self.right = None
@@ -42,15 +40,15 @@ class Two3Node:
         return self.right is None
 
     def update(self, db: DBInterface.Database23NodeInterface):
-        m = hashlib.sha256()
-        m.update(get_child_hash(self.left_child_id, db))
-        m.update(get_value_to_hash(self.left))
-        m.update(get_child_hash(self.mid_child_id, db))
-        m.update(get_value_to_hash(self.right))
-        m.update(get_child_hash(self.right_child_id, db))
-        self.hash = m.digest()
-        # TODO update hash value in database
-        pass
+        self.hash_function.update(get_hash_from_node(self.left_child_id, db))
+        self.hash_function.update(self.left)
+        self.hash_function.update(get_hash_from_node(self.mid_child_id, db))
+        if not self.is_2_node():
+            self.hash_function.update(self.right)
+        self.hash_function.update(self.right)
+        self.hash_function.update(get_hash_from_node(self.right_child_id, db))
+        self.hash = self.hash_function.digest()
+        db.update_23_node(self)
 
     def get_values(self):
         return [self.left, self.right]
@@ -66,16 +64,8 @@ class Two3Node:
                f"Values {self.left}, {self.right}"
 
 
-def get_child_hash(child_id, db: DBInterface.Database23NodeInterface) -> bytes:
+def get_hash_from_node(child_id, db: DBInterface.Database23NodeInterface) -> bytes:
     if child_id is not None:
         return db.get_23_node_by_id(child_id).hash
     else:
-        raise NotImplementedError()
-
-
-# TODO: Replace with object that has .bytes function ? issue with none? Default value?
-def get_value_to_hash(value) -> bytes:
-    if value is not None:
-        raise NotImplementedError()
-    else:
-        raise NotImplementedError()
+        return None

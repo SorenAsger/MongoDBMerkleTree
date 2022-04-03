@@ -52,7 +52,7 @@ class auth_db_server:
             nearest_node = current
             current = self.dbi.get_23_node_by_id(child_id)
 
-        print("depth of lookup: " + str(depth) + " for value: " + str(value))
+        #print("depth of lookup: " + str(depth) + " for value: " + str(value))
         return nearest_node, parent
 
     def insert(self, value):
@@ -63,6 +63,18 @@ class auth_db_server:
         insertion_node, parent = self.find_nearest_node_and_parent(value)
         insertion_node.parent = parent
         self.insert_at(insertion_node, value)
+        # Update hashes upwards
+        # TODO: We need to make sure that new nodes created are also handled
+        self.update_upwards(insertion_node)
+
+    def update_upwards(self, starting_node: 'Two3Node'):
+        # Update the node itself
+        # while node is not root, update upwards
+        starting_node.update(self.dbi)
+        parent = starting_node.parent
+        while parent is not None:
+            parent.update(self.dbi)
+            parent = parent.parent
 
     def insert_at(self, insertion_node: 'Two3Node', value):
         parent = insertion_node.parent
@@ -79,7 +91,7 @@ class auth_db_server:
 
     def insert_3_node_root(self, value, insert_location: 'Two3Node'):
         # TODO Split here
-        print("Rootinsert", insert_location.node_id)
+        #print("Rootinsert", insert_location.node_id)
         min_node, max_node, mid = self.split_node(insert_location, value)
 
         insert_location.left_child_id = min_node.node_id
@@ -96,10 +108,10 @@ class auth_db_server:
         min_node, max_node, mid = self.split_node(insert_location, value)
 
         # Now we need to reconstruct pointers from parent min and parent max to the children
-        print("3_n_3")
-        print(parent)
-        print([parent.left_child_id, parent.mid_child_id, parent.right_child_id])
-        print([parent.left, parent.right])
+        #print("3_n_3")
+        #print(parent)
+        #print([parent.left_child_id, parent.mid_child_id, parent.right_child_id])
+        #print([parent.left, parent.right])
 
         if insert_location.node_id == parent.left_child_id:
             all_children_id = [min_node.node_id, max_node.node_id, parent.mid_child_id, parent.right_child_id]
@@ -112,13 +124,13 @@ class auth_db_server:
         # Values and all children are the temp 4 node
         # all_children contains the previous children (left, mid, right) and the new nodes (min and max)
         # We now remove the node that was split and replaced with min and max
-        print(all_children_id)
+        #print(all_children_id)
         # parent_min, parent_max, parent_mid = self.split_node(parent, mid, left_children=all_children_id[:2],
         #                                                    right_children=all_children_id[2:])
         #parent_min = self.dbi.get_23_node_by_id(parent.left_child_id)
         #parent_max = self.dbi.get_23_node_by_id(parent.right_child_id)
-        print("parentsbefore")
-        print(parent)
+        #print("parentsbefore")
+        #print(parent)
         #print(parent_min)
         #print(parent_max)
         #parent_min.left_child_id = all_children_id[0]
@@ -193,8 +205,8 @@ class auth_db_server:
 
         # min_node = self.dbi.create_23_node(values[0], left_children)
         # max_node = self.dbi.create_23_node(values[2], right_children)
-        print("3_n_2")
-        print(parent)
+        #print("3_n_2")
+        #print(parent)
         if insert_location.node_id == parent.left_child_id:
             parent.left_child_id = min_node.node_id
             parent.mid_child_id = max_node.node_id
@@ -210,7 +222,6 @@ class auth_db_server:
         # TODO: Update parent in database and delete insert_location from database
         # TODO: Could maybe be more efficient to not delete insert_location and reuse it instead?
         # TODO: Update upwards and hash thing
-        print(parent)
         self.dbi.update_23_node(parent)
         self.dbi.remove_23_node(insert_location)
 
