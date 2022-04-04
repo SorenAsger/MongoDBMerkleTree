@@ -17,7 +17,7 @@ def insert_sorted(n):
         server.insert(i)
 
 server.destroy_db()
-insert_many(80)
+insert_many(8)
 '''
 exec_times = []
 x_values = []
