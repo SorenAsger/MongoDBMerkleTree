@@ -1,7 +1,6 @@
 from typing import List
 
 from DBInterface import Database23NodeInterface
-from DBManagement import MongoDB
 from Node import Two3Node
 
 
@@ -17,6 +16,8 @@ class auth_db_server:
         values.sort()
         min_node = self.dbi.create_23_node(values[0], left_children)
         max_node = self.dbi.create_23_node(values[2], right_children)
+        min_node.update_hash(self.dbi)
+        max_node.update_hash(self.dbi)
         return min_node, max_node, values[1]
 
     def find_nearest_node_and_parent(self, value):
@@ -63,18 +64,12 @@ class auth_db_server:
         insertion_node, parent = self.find_nearest_node_and_parent(value)
         insertion_node.parent = parent
         self.insert_at(insertion_node, value)
-        # Update hashes upwards
-        # TODO: We need to make sure that new nodes created are also handled
-        self.update_upwards(insertion_node)
 
-    def update_upwards(self, starting_node: 'Two3Node'):
-        # Update the node itself
-        # while node is not root, update upwards
-        starting_node.update(self.dbi)
-        parent = starting_node.parent
-        while parent is not None:
-            parent.update(self.dbi)
-            parent = parent.parent
+    def update_hashes_upwards(self, starting_node: 'Two3Node'):
+        current = starting_node
+        while current is not None:
+            current.update_hash(self.dbi)
+            current = current.parent
 
     def insert_at(self, insertion_node: 'Two3Node', value):
         parent = insertion_node.parent
@@ -103,6 +98,7 @@ class auth_db_server:
         # TODO: Could maybe be more efficient to not delete insert_location and reuse it instead?
         # TODO: Update upwards and hash thing
         self.dbi.update_23_node(insert_location)
+        insert_location.update_hash(self.dbi)
 
     def insert_3_node_3_parent(self, value, insert_location: 'Two3Node', parent: 'Two3Node'):
         min_node, max_node, mid = self.split_node(insert_location, value)
@@ -140,6 +136,7 @@ class auth_db_server:
             node.right = None
             node.mid_child_id = None
             self.dbi.update_23_node(node)
+            self.update_hashes_upwards(node)
             # ROOT CASE SHOULD WORK
         elif parent.is_2_node():
             if node.node_id == parent.left_child_id:
@@ -155,6 +152,8 @@ class auth_db_server:
                 parent.left = values[1]
             self.dbi.update_23_node(parent)
             self.dbi.remove_23_node(node)
+            self.update_hashes_upwards(parent)
+
         else:
             # Parent is 3 node as well
             # Need to create a new temp 4 node
@@ -171,15 +170,7 @@ class auth_db_server:
     def insert_3_node_2_parent(self, value, insert_location: 'Two3Node', parent: 'Two3Node'):
         # Create 2 new nodes for min and max
         min_node, max_node, mid = self.split_node(insert_location, value)
-        # values = [node.left, node.right, value]
-        # values.sort()
-        # mid = values[1]
-        # self.insert_at(parent, mid)
 
-        # min_node = self.dbi.create_23_node(values[0], left_children)
-        # max_node = self.dbi.create_23_node(values[2], right_children)
-        #print("3_n_2")
-        #print(parent)
         if insert_location.node_id == parent.left_child_id:
             parent.left_child_id = min_node.node_id
             parent.mid_child_id = max_node.node_id
@@ -197,6 +188,7 @@ class auth_db_server:
         # TODO: Update upwards and hash thing
         self.dbi.update_23_node(parent)
         self.dbi.remove_23_node(insert_location)
+        self.update_hashes_upwards(min_node)
 
     def insert_2_node(self, value, insert_location):
         # Insert value into node in sorted order
@@ -207,7 +199,7 @@ class auth_db_server:
             insert_location.left = value
         # push update to DB
         self.dbi.update_23_node(insert_location)
-        # TODO: Update upwards and hash thing
+        self.update_hashes_upwards(insert_location)
 
     def print_db(self):
         print("\nAll records in DB")

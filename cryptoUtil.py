@@ -10,5 +10,6 @@ class HashFunction:
         return self.m.digest()
 
     def update(self, value):
-        encoded_val = str(value).encode('utf-8')
-        self.m.update(encoded_val)
+        if value is not None:
+            value_as_bytes = str(value).encode('utf-8')
+            self.m.update(value_as_bytes)

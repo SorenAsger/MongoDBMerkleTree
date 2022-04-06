@@ -39,7 +39,7 @@ class Two3Node:
     def is_2_node(self):
         return self.right is None
 
-    def update(self, db: DBInterface.Database23NodeInterface):
+    def update_hash(self, db: DBInterface.Database23NodeInterface):
         self.hash_function.update(get_hash_from_node(self.left_child_id, db))
         self.hash_function.update(self.left)
         self.hash_function.update(get_hash_from_node(self.mid_child_id, db))

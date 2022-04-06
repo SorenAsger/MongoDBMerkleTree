@@ -15,9 +15,11 @@ def insert_many(n):
 def insert_sorted(n):
     for i in range(0, n):
         server.insert(i)
+    server.print_db()
 
 server.destroy_db()
-insert_many(8)
+insert_sorted(50)
+
 '''
 exec_times = []
 x_values = []
