@@ -1,8 +1,8 @@
 import random
 import unittest
 
-from DBManagement import MongoDB
-from authdbserver import AuthDBServer
+from db_adapters import MongoDB
+from auth_db_server import AuthDBServer
 
 
 class AuthDBServerTest(unittest.TestCase):

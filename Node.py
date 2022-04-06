@@ -1,5 +1,4 @@
-import DBInterface
-from cryptoUtil import HashFunction
+from crypto_util import HashFunction
 
 
 class Node:
@@ -39,7 +38,7 @@ class Two3Node:
     def is_2_node(self):
         return self.right is None
 
-    def update_hash(self, db: DBInterface.Database23NodeInterface):
+    def update_hash(self, db):
         self.hash_function.update(get_hash_from_node(self.left_child_id, db))
         self.hash_function.update(self.left)
         self.hash_function.update(get_hash_from_node(self.mid_child_id, db))
@@ -64,7 +63,7 @@ class Two3Node:
                f"Values {self.left}, {self.right}"
 
 
-def get_hash_from_node(child_id, db: DBInterface.Database23NodeInterface) -> bytes:
+def get_hash_from_node(child_id, db) -> bytes:
     if child_id is not None:
         return db.get_23_node_by_id(child_id).hash
     return None

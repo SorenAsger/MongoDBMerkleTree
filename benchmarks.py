@@ -1,7 +1,7 @@
 import random
 
-from DBManagement import MongoDB
-from authdbserver import AuthDBServer
+from db_adapters import MongoDB
+from auth_db_server import AuthDBServer
 
 server = AuthDBServer(MongoDB())
 

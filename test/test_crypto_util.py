@@ -1,6 +1,6 @@
 import unittest
 
-from cryptoUtil import HashFunction
+from crypto_util import HashFunction
 
 class cryptoUtilTest(unittest.TestCase):
 
