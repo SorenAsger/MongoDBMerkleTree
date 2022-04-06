@@ -1,4 +1,5 @@
 import hashlib
+import struct
 
 
 class HashFunction:
@@ -9,8 +10,5 @@ class HashFunction:
         return self.m.digest()
 
     def update(self, value):
-        if type(value) == str:
-            value = value.encode('utf-8')
-            self.m.update(value)
-        elif type(value) == int:
-            self.m.update(value.to_bytes(2, byteorder='big'))
+        encoded_val = str(value).encode('utf-8')
+        self.m.update(encoded_val)

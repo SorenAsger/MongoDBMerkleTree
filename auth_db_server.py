@@ -121,33 +121,6 @@ class auth_db_server:
             all_children_id = [parent.left_child_id, parent.mid_child_id, min_node.node_id, max_node.node_id]
         values = sorted([parent.left, parent.right, mid])
         self.insert_3_node_help(parent, all_children_id, values)
-        # Values and all children are the temp 4 node
-        # all_children contains the previous children (left, mid, right) and the new nodes (min and max)
-        # We now remove the node that was split and replaced with min and max
-        #print(all_children_id)
-        # parent_min, parent_max, parent_mid = self.split_node(parent, mid, left_children=all_children_id[:2],
-        #                                                    right_children=all_children_id[2:])
-        #parent_min = self.dbi.get_23_node_by_id(parent.left_child_id)
-        #parent_max = self.dbi.get_23_node_by_id(parent.right_child_id)
-        #print("parentsbefore")
-        #print(parent)
-        #print(parent_min)
-        #print(parent_max)
-        #parent_min.left_child_id = all_children_id[0]
-        #parent_min.right_child_id = all_children_id[1]
-        #parent_max.left_child_id = all_children_id[2]
-        #parent_max.right_child_id = all_children_id[3]
-        # parent.left_child_id = parent_min.node_id
-        # parent.right_child_id = parent_max.node_id
-        # parent.mid_child_id = None
-        # parent.left = parent_mid
-        # parent.right = None
-        #print("parents")
-        #print(parent)
-        #print(parent_min)
-        #print(parent_max)
-        # print(self.dbi.get_23_node_by_id(parent_min.left_child_id))
-        #print("parents_end")
         self.dbi.update_23_node(parent)
         self.dbi.remove_23_node(insert_location)
         # TODO: Update parent in database and delete insert_location from database
