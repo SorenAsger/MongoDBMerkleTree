@@ -67,5 +67,4 @@ class Two3Node:
 def get_hash_from_node(child_id, db: DBInterface.Database23NodeInterface) -> bytes:
     if child_id is not None:
         return db.get_23_node_by_id(child_id).hash
-    else:
-        return None
+    return None
