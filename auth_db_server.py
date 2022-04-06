@@ -127,7 +127,10 @@ class auth_db_server:
         # Children ids are sorted
         parent = node.parent
         min_node = self.dbi.create_23_node(values[0], children_ids[:2])
+        min_node.update_hash(self.dbi)
         max_node = self.dbi.create_23_node(values[2], children_ids[2:])
+        max_node.update_hash(self.dbi)
+
         if parent is None:
             # Handle case for root
             node.left_child_id = min_node.node_id
@@ -188,7 +191,7 @@ class auth_db_server:
         # TODO: Update upwards and hash thing
         self.dbi.update_23_node(parent)
         self.dbi.remove_23_node(insert_location)
-        self.update_hashes_upwards(min_node)
+        self.update_hashes_upwards(parent)
 
     def insert_2_node(self, value, insert_location):
         # Insert value into node in sorted order
