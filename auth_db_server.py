@@ -53,6 +53,10 @@ class AuthDBServer:
         #print("depth of lookup: " + str(depth) + " for value: " + str(value))
         return nearest_node, parent
 
+    def contains(self, value):
+        nearest_node, _ = self.find_nearest_node_and_parent(value)
+        return value in nearest_node.get_values()
+
     def insert(self, value):
         if self.root_id is None:
             self.root_id = "root"
