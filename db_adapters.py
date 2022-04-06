@@ -1,9 +1,8 @@
 from pymongo import MongoClient
-from DBInterface import Database23NodeInterface
-from Node import Two3Node
+from node import Two3Node
 
 
-class MongoDB(Database23NodeInterface):
+class MongoDB():
 
     def __init__(self, ip='localhost', port=27017):
         self.client = MongoClient(ip, port)

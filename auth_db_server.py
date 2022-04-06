@@ -1,12 +1,9 @@
-from typing import List
-
-from DBInterface import Database23NodeInterface
-from Node import Two3Node
+from node import Two3Node
 
 
 class AuthDBServer:
 
-    def __init__(self, dbi: Database23NodeInterface):
+    def __init__(self, dbi):
         print("Server started.")
         self.root_id = None
         self.dbi = dbi
