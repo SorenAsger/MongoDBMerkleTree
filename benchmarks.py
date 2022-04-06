@@ -1,9 +1,9 @@
 import random
 
 from DBManagement import MongoDB
-from auth_db_server import auth_db_server
+from authdbserver import AuthDBServer
 
-server = auth_db_server(MongoDB())
+server = AuthDBServer(MongoDB())
 
 
 def insert_many(n):

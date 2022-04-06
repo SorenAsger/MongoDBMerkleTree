@@ -2,13 +2,13 @@ import random
 import unittest
 
 from DBManagement import MongoDB
-from auth_db_server import auth_db_server
+from authdbserver import AuthDBServer
 
 
 class AuthDBServerTest(unittest.TestCase):
 
     def setUp(self):
-        self.server = auth_db_server(MongoDB())
+        self.server = AuthDBServer(MongoDB())
 
     def test_all_nodes_have_hash_with_sorted_insertions(self):
         self.server.destroy_db()

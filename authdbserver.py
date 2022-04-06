@@ -4,7 +4,7 @@ from DBInterface import Database23NodeInterface
 from Node import Two3Node
 
 
-class auth_db_server:
+class AuthDBServer:
 
     def __init__(self, dbi: Database23NodeInterface):
         print("Server started.")
