@@ -1,13 +1,9 @@
-from typing import List
-
-from DBInterface import Database23NodeInterface
-from DBManagement import MongoDB
-from Node import Two3Node
+from node import Two3Node
 
 
-class auth_db_server:
+class AuthDBServer:
 
-    def __init__(self, dbi: Database23NodeInterface):
+    def __init__(self, dbi):
         print("Server started.")
         self.root_id = None
         self.dbi = dbi
@@ -17,6 +13,8 @@ class auth_db_server:
         values.sort()
         min_node = self.dbi.create_23_node(values[0], left_children)
         max_node = self.dbi.create_23_node(values[2], right_children)
+        min_node.update_hash(self.dbi)
+        max_node.update_hash(self.dbi)
         return min_node, max_node, values[1]
 
     def find_nearest_node_and_parent(self, value):
@@ -54,6 +52,10 @@ class auth_db_server:
             current = self.dbi.get_23_node_by_id(child_id)
 
         return nearest_node, parent
+
+    def contains(self, value):
+        nearest_node, _ = self.find_nearest_node_and_parent(value)
+        return value in nearest_node.get_values()
 
     def insert(self, value):
         if self.root_id is None:
@@ -108,20 +110,11 @@ class auth_db_server:
     def delete_3_node_sib_3_node_parent(self, value, node, parent):
         pass
 
-    def update_upwards(self, starting_node: 'Two3Node'):
-        # Update the node itself
-        # while node is not root, update upwards
-        print("start")
-        starting_node.update(self.dbi)
-        print(starting_node)
-        self.dbi.update_23_node(starting_node)
-        parent = starting_node.parent
-        while parent is not None:
-            print("hey", parent)
-            parent.update(self.dbi)
-            self.dbi.update_23_node(parent)
-            parent = parent.parent
-        print("done")
+    def update_hashes_upwards(self, starting_node: 'Two3Node'):
+        current = starting_node
+        while current is not None:
+            current.update_hash(self.dbi)
+            current = current.parent
 
     def insert_at(self, insertion_node: 'Two3Node', value):
         parent = insertion_node.parent
@@ -149,6 +142,7 @@ class auth_db_server:
         # TODO: Could maybe be more efficient to not delete insert_location and reuse it instead?
         # TODO: Update upwards and hash thing
         self.dbi.update_23_node(insert_location)
+        insert_location.update_hash(self.dbi)
 
     def insert_3_node_3_parent(self, value, insert_location: 'Two3Node', parent: 'Two3Node'):
         print("that")
@@ -172,7 +166,10 @@ class auth_db_server:
         parent = node.parent
         print("what")
         min_node = self.dbi.create_23_node(values[0], children_ids[:2])
+        min_node.update_hash(self.dbi)
         max_node = self.dbi.create_23_node(values[2], children_ids[2:])
+        max_node.update_hash(self.dbi)
+
         if parent is None:
             # Handle case for root
             node.left_child_id = min_node.node_id
@@ -181,6 +178,7 @@ class auth_db_server:
             node.right = None
             node.mid_child_id = None
             self.dbi.update_23_node(node)
+            self.update_hashes_upwards(node)
             # ROOT CASE SHOULD WORK
         elif parent.is_2_node():
             if node.node_id == parent.left_child_id:
@@ -196,6 +194,8 @@ class auth_db_server:
                 parent.left = values[1]
             self.dbi.update_23_node(parent)
             self.dbi.remove_23_node(node)
+            self.update_hashes_upwards(parent)
+
         else:
             # Parent is 3 node as well
             # Need to create a new temp 4 node
@@ -213,6 +213,7 @@ class auth_db_server:
         # Create 2 new nodes for min and max
         print("stop")
         min_node, max_node, mid = self.split_node(insert_location, value)
+
         if insert_location.node_id == parent.left_child_id:
             parent.left_child_id = min_node.node_id
             parent.mid_child_id = max_node.node_id
@@ -230,6 +231,7 @@ class auth_db_server:
         # TODO: Update upwards and hash thing
         self.dbi.update_23_node(parent)
         self.dbi.remove_23_node(insert_location)
+        self.update_hashes_upwards(parent)
 
     def insert_2_node(self, value, insert_location):
         # Insert value into node in sorted order
@@ -241,13 +243,17 @@ class auth_db_server:
             insert_location.left = value
         # push update to DB
         self.dbi.update_23_node(insert_location)
-        # TODO: Update upwards and hash thing
+        self.update_hashes_upwards(insert_location)
 
     def print_db(self):
         print("\nAll records in DB")
         cursor = self.dbi.nodes.find()
         for record in cursor:
             print(record)
+
+    def get_db_cursor(self):
+        return self.dbi.nodes.find()
+
 
     def destroy_db(self):
         self.dbi.destroy_db()
@@ -264,14 +270,3 @@ class auth_db_server:
     def print_tree(self):
         print(self.tree_to_str(self.dbi.get_23_node_by_id(self.root_id)))
 
-    def test(self):
-        self.destroy_db()
-        self.insert(5)
-        self.insert(6)
-        self.delete(6)
-        # self.print_tree()
-
-if __name__ == '__main__':
-    mon = MongoDB()
-    serv = auth_db_server(mon)
-    serv.test()

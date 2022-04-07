@@ -1,9 +1,9 @@
 import random
 
-from DBManagement import MongoDB
-from auth_db_server import auth_db_server
+from db_adapters import MongoDB
+from auth_db_server import AuthDBServer
 
-server = auth_db_server(MongoDB())
+server = AuthDBServer(MongoDB())
 
 
 def insert_many(n):
@@ -15,9 +15,11 @@ def insert_many(n):
 def insert_sorted(n):
     for i in range(0, n):
         server.insert(i)
+    server.print_db()
 
 server.destroy_db()
-insert_many(8)
+insert_sorted(40)
+
 '''
 exec_times = []
 x_values = []
