@@ -39,6 +39,9 @@ class Two3Node:
     def is_2_node(self):
         return self.right is None
 
+    def is_leaf(self):
+        return self.left_child_id is None
+
     def update(self, db: DBInterface.Database23NodeInterface):
         self.hash_function.update(get_hash_from_node(self.left_child_id, db))
         self.hash_function.update(self.left)
@@ -48,13 +51,24 @@ class Two3Node:
         self.hash_function.update(self.right)
         self.hash_function.update(get_hash_from_node(self.right_child_id, db))
         self.hash = self.hash_function.digest()
-        db.update_23_node(self)
 
     def get_values(self):
         return [self.left, self.right]
 
     def get_children_ids(self):
         return [self.left_child_id, self.mid_child_id, self.right_child_id]
+
+    def get_sibling(self, node):
+        if self.is_2_node():
+            if self.left_child_id == node.node_id:
+                return self.right_child_id
+            else:
+                return self.left_child_id
+        else:
+            if self.left_child_id == node.node_id or self.right_child_id == node.node_id:
+                return self.mid_child_id
+            else:
+                return self.left_child_id
 
     def __eq__(self, other: 'Two3Node'):
         return other is not None and self.node_id == other.node_id
