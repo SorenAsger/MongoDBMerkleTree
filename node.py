@@ -22,6 +22,19 @@ class Node:
         return len(self.values) == 1
 
 
+class HoleNode:
+    def __init__(self, node, child):
+        self.node_id = node.node_id
+        self.parent = node.parent
+        self.left_child_id = child
+
+    def is_2_node(self):
+        return True
+
+    def is_hole_node(self):
+        return True
+
+
 class Two3Node:
     def __init__(self, node_id, left):
         self.hash_function = HashFunction()
@@ -68,6 +81,9 @@ class Two3Node:
                 return self.mid_child_id
             else:
                 return self.left_child_id
+
+    def is_hole_node(self):
+        return False
 
     def __eq__(self, other: 'Two3Node'):
         return other is not None and self.node_id == other.node_id

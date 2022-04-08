@@ -1,5 +1,5 @@
 from pymongo import MongoClient
-from node import Two3Node
+from node import Two3Node, HoleNode
 
 
 class MongoDB():
@@ -17,8 +17,34 @@ class MongoDB():
         filter = {"_id": node.node_id}
         self.nodes.update_one(filter, update_value)
 
-    def remove_23_node(self, node: 'Two3Node'):
+    def update_23_node_value_children(self, node: 'Two3Node', values, children=None):
+        if values[1] is not None:
+            values.sort()
+        values = {'left': values[0], 'right': values[1]}
+        if children is None:
+            children = {'left': node.left_child_id, 'mid': node.mid_child_id, 'right': node.right_child_id}
+        else:
+            children = {'left': children[0], 'mid': children[1], 'right': children[2]}
+        update_value = {"$set": {'children': children, 'values': values}}
         filter = {"_id": node.node_id}
+        self.nodes.update_one(filter, update_value)
+
+    def new_root(self, node_id):
+        node = self.nodes.find_one({'_id': node_id})
+        root = {"_id": self.root_id, 'children': node["children"],
+                'values': node["values"]}
+        self.nodes.insert_one(root)
+
+    def make_hole_node(self, node, child = None):
+        children = {'left': child, 'mid': None, 'right': None}
+        values = {'left': None, 'right': None}
+        update_value = {"$set": {'children': children, 'values': values}}
+        filter = {"_id": node.node_id}
+        self.nodes.update_one(filter, update_value)
+        return HoleNode(node, child)
+
+    def remove_23_node(self, node_id):
+        filter = {"_id": node_id}
         self.nodes.delete_one(filter)
 
     def delete_left_right(self, node, delete_left):
@@ -29,14 +55,23 @@ class MongoDB():
         update_value = {"$set": {'values': values, 'hash': node.hash}}
         filter = {"_id": node.node_id}
         self.nodes.update_one(filter, update_value)
-        print("here", self.nodes.find_one(filter))
 
     def get_23_node_by_id(self, node_id):
         if node_id is None:
             return None
         node = self.nodes.find_one({'_id': node_id})
-        print(node)
         nod = Two3Node(node_id, node["values"]["left"])
+        nod.right = node["values"]["right"]
+        nod.left_child_id = node["children"]["left"]
+        nod.mid_child_id = node["children"]["mid"]
+        nod.right_child_id = node["children"]["right"]
+        return nod
+
+    def get_root(self):
+        node = self.nodes.find_one({'_id': self.root_id})
+        if node is None:
+            return None
+        nod = Two3Node(self.root_id, node["values"]["left"])
         nod.right = node["values"]["right"]
         nod.left_child_id = node["children"]["left"]
         nod.mid_child_id = node["children"]["mid"]
@@ -53,7 +88,7 @@ class MongoDB():
         if children is None:
             children = [None, None, None]
         temp_node = Two3Node("fake_id", key)
-        temp_node.update(self.db)
+        #temp_node.update(self.db)
         if len(children) == 3:
             node = {'children': {'left': children[0],
                                  'mid': children[1],

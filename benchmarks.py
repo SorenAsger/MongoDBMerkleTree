@@ -15,10 +15,38 @@ def insert_many(n):
 def insert_sorted(n):
     for i in range(0, n):
         server.insert(i)
-    server.print_db()
+    print("bef", server.contains(4))
+    server.print_tree()
+    node = server.delete(4)
+
+    print("aft", server.contains(4))
+    server.print_tree()
+    #server.print_db()
+
+def spec():
+    list = [i for i in range(0,1000)]
+    random.shuffle(list)
+    for x in list:
+        server.insert(x)
+
+    rand = []
+    while len(rand) < 500:
+        new_int = random.randint(0,1000)
+        if new_int not in rand:
+            rand.append(new_int)
+
+
+    for i in range(0,500):
+        print("test", i)
+        server.delete(rand[i])
+
+    server.print_tree()
+
 
 server.destroy_db()
-insert_sorted(40)
+spec()
+#insert_sorted(7)
+
 
 '''
 exec_times = []

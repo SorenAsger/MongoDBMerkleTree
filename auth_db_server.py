@@ -18,7 +18,7 @@ class AuthDBServer:
         return min_node, max_node, values[1]
 
     def find_nearest_node_and_parent(self, value):
-        current = self.dbi.get_23_node_by_id(self.root_id)
+        current = self.dbi.get_root()
         parent = None
         nearest_node = None
         depth = 0
@@ -48,13 +48,14 @@ class AuthDBServer:
                     child_id = current.mid_child_id
             parent = nearest_node
             nearest_node = current
-            print("t2")
             current = self.dbi.get_23_node_by_id(child_id)
 
         return nearest_node, parent
 
     def contains(self, value):
         nearest_node, _ = self.find_nearest_node_and_parent(value)
+        if nearest_node is None:
+            return False
         return value in nearest_node.get_values()
 
     def insert(self, value):
@@ -68,47 +69,6 @@ class AuthDBServer:
         # Update hashes upwards
         # TODO: We need to make sure that new nodes created are also handled
         # self.update_upwards(insertion_node)
-
-    def delete(self, value):
-        if self.root_id is None:
-            print("Tree is empty")
-            return
-        insertion_node, parent = self.find_nearest_node_and_parent(value)
-        if insertion_node is not None and value in [insertion_node.left, insertion_node.right]:
-            self.delete_at(value, insertion_node)
-        else:
-            print("Value not in tree")
-
-    def delete_at(self, value, node):
-        parent = node.parent
-        if parent is not None:
-            sibling = self.dbi.get_23_node_by_id(parent.get_sibling(node))
-        if node.is_2_node() is False and node.is_leaf():
-            self.delete_3_node_no_children(value, node)
-        elif parent.is_2_node() and sibling.is_2_node():
-            self.delete_2_node_sib_2_node_parent(value, node, parent)
-        elif parent.is_2_node() and sibling.is_2_node() is False:
-            self.delete_2_node_sib_3_node_parent(value, node, parent)
-        elif parent.is_2_node() is False and sibling.is_2_node():
-            self.delete_3_node_sib_2_node_parent(value, node, parent)
-        elif parent.is_2_node() is False and sibling.is_2_node() is False:
-            self.delete_3_node_sib_3_node_parent(value, node, parent)
-
-    def delete_3_node_no_children(self, value, node):
-        delete_left = node.left == value
-        self.dbi.delete_left_right(node, delete_left)
-
-    def delete_2_node_sib_2_node_parent(self, value, node, parent):
-        pass
-
-    def delete_2_node_sib_3_node_parent(self, value, node, parent):
-        pass
-
-    def delete_3_node_sib_2_node_parent(self, value, node, parent):
-        pass
-
-    def delete_3_node_sib_3_node_parent(self, value, node, parent):
-        pass
 
     def update_hashes_upwards(self, starting_node: 'Two3Node'):
         current = starting_node
@@ -132,7 +92,6 @@ class AuthDBServer:
     def insert_3_node_root(self, value, insert_location: 'Two3Node'):
         # TODO Split here
         min_node, max_node, mid = self.split_node(insert_location, value)
-        print("this")
         insert_location.left_child_id = min_node.node_id
         insert_location.right_child_id = max_node.node_id
         insert_location.left = mid
@@ -145,7 +104,6 @@ class AuthDBServer:
         insert_location.update_hash(self.dbi)
 
     def insert_3_node_3_parent(self, value, insert_location: 'Two3Node', parent: 'Two3Node'):
-        print("that")
         min_node, max_node, mid = self.split_node(insert_location, value)
         if insert_location.node_id == parent.left_child_id:
             all_children_id = [min_node.node_id, max_node.node_id, parent.mid_child_id, parent.right_child_id]
@@ -156,7 +114,7 @@ class AuthDBServer:
         values = sorted([parent.left, parent.right, mid])
         self.insert_3_node_help(parent, all_children_id, values)
         self.dbi.update_23_node(parent)
-        self.dbi.remove_23_node(insert_location)
+        self.dbi.remove_23_node(insert_location.node_id)
         # TODO: Update parent in database and delete insert_location from database
         # TODO: Could maybe be more efficient to not delete insert_location and reuse it instead?
         # TODO: Update upwards and hash thing
@@ -164,7 +122,6 @@ class AuthDBServer:
     def insert_3_node_help(self, node: "Two3Node", children_ids, values):
         # Children ids are sorted
         parent = node.parent
-        print("what")
         min_node = self.dbi.create_23_node(values[0], children_ids[:2])
         min_node.update_hash(self.dbi)
         max_node = self.dbi.create_23_node(values[2], children_ids[2:])
@@ -193,7 +150,7 @@ class AuthDBServer:
                 parent.right = parent.left
                 parent.left = values[1]
             self.dbi.update_23_node(parent)
-            self.dbi.remove_23_node(node)
+            self.dbi.remove_23_node(node.node_id)
             self.update_hashes_upwards(parent)
 
         else:
@@ -207,11 +164,10 @@ class AuthDBServer:
             else:
                 new_children_id = [parent.left_child_id, parent.mid_child_id, min_node.node_id, max_node.node_id]
             self.insert_3_node_help(parent, new_children_id, new_values)
-            self.dbi.remove_23_node(node)
+            self.dbi.remove_23_node(node.node_id)
 
     def insert_3_node_2_parent(self, value, insert_location: 'Two3Node', parent: 'Two3Node'):
         # Create 2 new nodes for min and max
-        print("stop")
         min_node, max_node, mid = self.split_node(insert_location, value)
 
         if insert_location.node_id == parent.left_child_id:
@@ -230,12 +186,11 @@ class AuthDBServer:
         # TODO: Could maybe be more efficient to not delete insert_location and reuse it instead?
         # TODO: Update upwards and hash thing
         self.dbi.update_23_node(parent)
-        self.dbi.remove_23_node(insert_location)
+        self.dbi.remove_23_node(insert_location.node_id)
         self.update_hashes_upwards(parent)
 
     def insert_2_node(self, value, insert_location):
         # Insert value into node in sorted order
-        print("y")
         if value > insert_location.left:
             insert_location.right = value
         else:
@@ -245,6 +200,223 @@ class AuthDBServer:
         self.dbi.update_23_node(insert_location)
         self.update_hashes_upwards(insert_location)
 
+    def delete(self, value):
+        if self.root_id is None:
+            print("Tree is empty")
+            return
+        nearest_node, parent = self.find_nearest_node_and_parent(value)
+        contains_val = value in [nearest_node.left, nearest_node.right]
+        last_elem = nearest_node.node_id == self.root_id and \
+                    nearest_node.is_2_node() and \
+                    contains_val and \
+                    nearest_node.left_child_id is None
+        if last_elem:
+            self.dbi.remove_23_node(nearest_node.node_id)
+            self.root_id = None
+        elif nearest_node is not None and contains_val:
+            self.delete_at(value, nearest_node)
+        else:
+            print("Value", value, "not in tree")
+
+    def delete_at(self, value, node):
+        if node.is_leaf():
+            if node.is_2_node() is False:
+                self.delete_3_node_no_children(value, node)
+                return
+            else:
+                self.delete_hole(node)
+                return
+        inorder_succ = self.find_succ(node, value)
+        if node.is_2_node():
+            self.dbi.update_23_node_value_children(node, [inorder_succ.left, None])
+        else:
+            if node.right == value:
+                self.dbi.update_23_node_value_children(node, [inorder_succ.left, node.left])
+            else:
+                self.dbi.update_23_node_value_children(node, [inorder_succ.left, node.right])
+        node = self.dbi.get_23_node_by_id(node.node_id)
+
+        if node.node_id == inorder_succ.parent.node_id:
+            inorder_succ.parent = node
+        self.delete_hole(inorder_succ)
+
+    def find_succ(self, node, value):
+        if node.is_2_node() or node.right == value:
+            current = self.dbi.get_23_node_by_id(node.right_child_id)
+        else:
+            current = self.dbi.get_23_node_by_id(node.mid_child_id)
+        succ = current
+        current.parent = node
+        while current is not None:
+            parent = current
+            current = self.dbi.get_23_node_by_id(current.left_child_id)
+            if current is not None:
+                succ = current
+                succ.parent = parent
+        return succ
+
+    def delete_hole(self, node):
+        if node.is_2_node() is False:
+            self.delete_3_node_no_children(node.left, node)
+            return
+        if node.is_hole_node():
+            hole = self.dbi.make_hole_node(node, node.left_child_id)
+        else:
+            hole = self.dbi.make_hole_node(node)
+
+        parent = hole.parent
+        if parent is None:
+            self.delete_root(hole)
+            return
+
+        sibling = self.dbi.get_23_node_by_id(parent.get_sibling(hole))
+        if parent.is_2_node() and sibling.is_2_node():
+            self.delete_2_node_sib_2_node_parent(hole, sibling, parent)
+        elif parent.is_2_node() and sibling.is_2_node() is False:
+            self.delete_3_node_sib_2_node_parent(hole, sibling, parent)
+        elif parent.is_2_node() is False and sibling.is_2_node():
+            self.delete_2_node_sib_3_node_parent(hole, sibling, parent)
+        elif parent.is_2_node() is False and sibling.is_2_node() is False:
+            self.delete_3_node_sib_3_node_parent(hole, sibling, parent)
+
+    def delete_root(self, node):
+        self.dbi.remove_23_node(node.node_id)
+        self.dbi.new_root(node.left_child_id)
+        self.dbi.remove_23_node(node.left_child_id)
+
+    def delete_3_node_no_children(self, value, node):
+        delete_left = node.left == value
+        self.dbi.delete_left_right(node, delete_left)
+
+    def delete_2_node_sib_2_node_parent(self, hole, sibling, parent):
+        _, new_parent = self.find_nearest_node_and_parent(parent.left)
+        if sibling.left < parent.left:
+            values = [sibling.left, parent.left]
+            children = [sibling.left_child_id, sibling.right_child_id, hole.left_child_id]
+            self.dbi.update_23_node_value_children(sibling, values, children)
+            hole_node = self.dbi.make_hole_node(parent, sibling.node_id)
+        else:
+            values = [parent.left, sibling.left]
+            children = [hole.left_child_id, sibling.left_child_id, sibling.right_child_id]
+            self.dbi.update_23_node_value_children(sibling, values, children)
+            hole_node = self.dbi.make_hole_node(parent, sibling.node_id)
+        self.dbi.remove_23_node(hole.node_id)
+        hole_node.parent = new_parent
+        self.delete_hole(hole_node)
+
+    def delete_3_node_sib_2_node_parent(self, hole, sibling, parent):
+        if sibling.left < parent.left:
+            # left
+            values = [sibling.left, None]
+            children = [sibling.left_child_id, None, sibling.mid_child_id]
+            self.dbi.update_23_node_value_children(sibling, values, children)
+            # parent
+            values = [sibling.right, None]
+            self.dbi.update_23_node_value_children(parent, values)
+            # right
+            values = [parent.left, None]
+            children = [sibling.right_child_id, None, hole.left_child_id]
+            self.dbi.update_23_node_value_children(hole, values, children)
+        else:
+            # left
+            values = [parent.left, None]
+            children = [hole.left_child_id, None, sibling.left_child_id]
+            self.dbi.update_23_node_value_children(hole, values, children)
+            # parent
+            values = [sibling.left, None]
+            self.dbi.update_23_node_value_children(parent, values)
+            # right
+            values = [sibling.right, None]
+            children = [sibling.mid_child_id, None, sibling.right_child_id]
+            self.dbi.update_23_node_value_children(sibling, values, children)
+
+
+    def delete_2_node_sib_3_node_parent(self, hole, sibling, parent):
+        if parent.left_child_id == hole.node_id or sibling.left < parent.left:
+            # left
+            if sibling.left < parent.left:
+                values = [sibling.left, parent.left]
+                children = [sibling.left_child_id, sibling.right_child_id, hole.left_child_id]
+                parent_children = [parent.left_child_id, None, parent.right_child_id]
+            else:
+                values = [parent.left, sibling.left]
+                children = [hole.left_child_id, sibling.left_child_id, sibling.right_child_id]
+                parent_children = [parent.mid_child_id, None, parent.right_child_id]
+            self.dbi.update_23_node_value_children(sibling, values, children)
+            # parent
+            values = [parent.right, None]
+            self.dbi.update_23_node_value_children(parent, values, parent_children)
+            # remove hole
+            self.dbi.remove_23_node(hole.node_id)
+        else:
+            # right
+            if sibling.left < parent.right:
+                values = [sibling.left, parent.right]
+                children = [sibling.left_child_id, sibling.right_child_id, hole.left_child_id]
+                parent_children = [parent.left_child_id, None, parent.right_child_id]
+            else:
+                values = [parent.right, sibling.left]
+                children = [hole.left_child_id, sibling.left_child_id, sibling.right_child_id]
+                parent_children = [parent.left_child_id, None, parent.mid_child_id]
+            self.dbi.update_23_node_value_children(hole, values, children)
+            # parent
+            values = [parent.left, None]
+            self.dbi.update_23_node_value_children(parent, values, parent_children)
+            # remove hole
+            self.dbi.remove_23_node(sibling.node_id)
+
+
+    def delete_3_node_sib_3_node_parent(self, hole, sibling, parent):
+        if parent.left_child_id == hole.node_id or sibling.left < parent.left:
+            if sibling.left < parent.left:
+                # left
+                lvalues = [sibling.left, None]
+                lchildren = [sibling.left_child_id, None, sibling.mid_child_id]
+                self.dbi.update_23_node_value_children(sibling, lvalues, lchildren)
+                # right
+                rvalues = [parent.left, None]
+                rchildren = [sibling.right_child_id, None, hole.left_child_id]
+                self.dbi.update_23_node_value_children(hole, rvalues, rchildren)
+                pvalues = [sibling.right, parent.right]
+            else:
+                # left
+                lvalues = [parent.left, None]
+                lchildren = [hole.left_child_id, None, sibling.left_child_id]
+                self.dbi.update_23_node_value_children(hole, lvalues, lchildren)
+                # right
+                rvalues = [sibling.right, None]
+                rchildren = [sibling.mid_child_id, None, sibling.right_child_id]
+                self.dbi.update_23_node_value_children(sibling, rvalues, rchildren)
+                pvalues = [sibling.left, parent.right]
+
+            # parent
+            self.dbi.update_23_node_value_children(parent, pvalues)
+
+        else:
+            if sibling.left < parent.right:
+                # left
+                lvalues = [sibling.left, None]
+                lchildren = [sibling.left_child_id, None, sibling.mid_child_id]
+                self.dbi.update_23_node_value_children(sibling, lvalues, lchildren)
+                # right
+                rvalues = [parent.right, None]
+                rchildren = [sibling.right_child_id, None, hole.left_child_id]
+                self.dbi.update_23_node_value_children(hole, rvalues, rchildren)
+                pvalues = [parent.left, sibling.right]
+            else:
+                # left
+                lvalues = [parent.right, None]
+                lchildren = [hole.left_child_id, None, sibling.left_child_id]
+                self.dbi.update_23_node_value_children(hole, lvalues, lchildren)
+                # right
+                rvalues = [sibling.right, None]
+                rchildren = [sibling.mid_child_id, None, sibling.right_child_id]
+                self.dbi.update_23_node_value_children(sibling, rvalues, rchildren)
+                pvalues = [parent.left, sibling.left]
+
+            # parent
+            self.dbi.update_23_node_value_children(parent, pvalues)
+
     def print_db(self):
         print("\nAll records in DB")
         cursor = self.dbi.nodes.find()
@@ -253,7 +425,6 @@ class AuthDBServer:
 
     def get_db_cursor(self):
         return self.dbi.nodes.find()
-
 
     def destroy_db(self):
         self.dbi.destroy_db()
@@ -268,5 +439,8 @@ class AuthDBServer:
         return f"Depth {depth} " + node.__str__() + f"\n {tabs} | {left} \n {tabs} | {mid} \n {tabs} | {right}"
 
     def print_tree(self):
-        print(self.tree_to_str(self.dbi.get_23_node_by_id(self.root_id)))
+        if self.root_id is None:
+            print("Empty tree")
+        else:
+            print(self.tree_to_str(self.dbi.get_23_node_by_id(self.root_id)))
 
