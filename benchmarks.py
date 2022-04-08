@@ -34,10 +34,8 @@ def spec():
         new_int = random.randint(0,1000)
         if new_int not in rand:
             rand.append(new_int)
-
-
+            
     for i in range(0,500):
-        print("test", i)
         server.delete(rand[i])
 
     server.print_tree()
