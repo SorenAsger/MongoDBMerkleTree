@@ -82,6 +82,23 @@ class AuthDBServerTest(unittest.TestCase):
         for n in numbers_in_tree:
             self.assertTrue(self.server.contains(n))
 
+    def test_root_hash_changes_after_deletion(self):
+        numbers = [i for i in range(0, 100)]
+        random.shuffle(numbers)
+
+        for x in numbers:
+            self.server.insert(x)
+
+        random.shuffle(numbers)
+
+        for i in range(0,50):
+            bef_hash = self.server.get_root_hash()
+            val = numbers[i]
+            self.server.delete(val)
+            aft_hash = self.server.get_root_hash()
+            self.assertFalse(bef_hash == aft_hash)
+
+
 
 
 if __name__ == '__main__':

@@ -17,22 +17,11 @@ class MongoDB():
         filter = {"_id": node.node_id}
         self.nodes.update_one(filter, update_value)
 
-    def update_23_node_value_children(self, node: 'Two3Node', values, children=None):
-        if values[1] is not None:
-            values.sort()
-        values = {'left': values[0], 'right': values[1]}
-        if children is None:
-            children = {'left': node.left_child_id, 'mid': node.mid_child_id, 'right': node.right_child_id}
-        else:
-            children = {'left': children[0], 'mid': children[1], 'right': children[2]}
-        update_value = {"$set": {'children': children, 'values': values}}
-        filter = {"_id": node.node_id}
-        self.nodes.update_one(filter, update_value)
-
     def new_root(self, node_id):
         node = self.nodes.find_one({'_id': node_id})
         root = {"_id": self.root_id, 'children': node["children"],
-                'values': node["values"]}
+                'values': node["values"],
+                'hash': node["hash"]}
         self.nodes.insert_one(root)
 
     def make_hole_node(self, node, child=None):
@@ -47,14 +36,12 @@ class MongoDB():
         filter = {"_id": node_id}
         self.nodes.delete_one(filter)
 
-    def delete_left_right(self, node, delete_left):
-        if delete_left:
-            values = {'left': node.right, 'right': None}
+    def get_root_hash(self):
+        node = self.nodes.find_one({'_id': self.root_id})
+        if node is None:
+            return None
         else:
-            values = {'left': node.left, 'right': None}
-        update_value = {"$set": {'values': values, 'hash': node.hash}}
-        filter = {"_id": node.node_id}
-        self.nodes.update_one(filter, update_value)
+            return node["hash"]
 
     def get_23_node_by_id(self, node_id):
         if node_id is None:
@@ -65,6 +52,7 @@ class MongoDB():
         nod.left_child_id = node["children"]["left"]
         nod.mid_child_id = node["children"]["mid"]
         nod.right_child_id = node["children"]["right"]
+        nod.hash = node["hash"]
         return nod
 
     def get_root(self):
@@ -76,6 +64,7 @@ class MongoDB():
         nod.left_child_id = node["children"]["left"]
         nod.mid_child_id = node["children"]["mid"]
         nod.right_child_id = node["children"]["right"]
+        nod.hash = node["hash"]
         return nod
 
     def create_root(self, value, root_id):
