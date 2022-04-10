@@ -63,6 +63,7 @@ class Two3Node:
         self.hash_function.update(self.right)
         self.hash_function.update(get_hash_from_node(self.right_child_id, db))
         self.hash = self.hash_function.digest()
+        db.update_23_node(self)
 
     def get_values(self):
         return [self.left, self.right]
