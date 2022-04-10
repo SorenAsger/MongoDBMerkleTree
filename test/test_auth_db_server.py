@@ -70,8 +70,8 @@ class AuthDBServerTest(unittest.TestCase):
             self.server.insert(i)
 
         random.shuffle(numbers)
-        numbers_in_tree = numbers[0:50]
-        numbers_deleted = numbers_in_tree[50:100]
+        numbers_in_tree = numbers[:50]
+        numbers_deleted = numbers[50:]
 
         for v in numbers_deleted:
             self.server.delete(v)
@@ -81,6 +81,7 @@ class AuthDBServerTest(unittest.TestCase):
 
         for n in numbers_in_tree:
             self.assertTrue(self.server.contains(n))
+
 
 
 if __name__ == '__main__':
