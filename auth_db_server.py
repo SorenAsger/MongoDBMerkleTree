@@ -68,7 +68,7 @@ class AuthDBServer:
         self.insert_at(insertion_node, value)
         # Update hashes upwards
         # TODO: We need to make sure that new nodes created are also handled
-        # self.update_upwards(insertion_node)
+        self.update_hashes_upwards(insertion_node)
 
     def update_hashes_upwards(self, starting_node: 'Two3Node'):
         current = starting_node
@@ -364,7 +364,6 @@ class AuthDBServer:
             self.dbi.update_23_node_value_children(parent, values, parent_children)
             # remove hole
             self.dbi.remove_23_node(sibling.node_id)
-
 
     def delete_3_node_sib_3_node_parent(self, hole, sibling, parent):
         if parent.left_child_id == hole.node_id or sibling.left < parent.left:
