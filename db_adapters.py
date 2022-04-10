@@ -35,7 +35,7 @@ class MongoDB():
                 'values': node["values"]}
         self.nodes.insert_one(root)
 
-    def make_hole_node(self, node, child = None):
+    def make_hole_node(self, node, child=None):
         children = {'left': child, 'mid': None, 'right': None}
         values = {'left': None, 'right': None}
         update_value = {"$set": {'children': children, 'values': values}}
@@ -84,11 +84,22 @@ class MongoDB():
         self.nodes.insert_one(root)
         return Two3Node(root["_id"], value)
 
+    def create_23_node_from_node(self, node):
+        if node.node_id is None:
+            node_as_json = {'children': {'left': node.left_child_id, 'mid': node.mid_child_id,
+                                         'right': node.right_child_id},
+                            'values': {'left': node.left, 'right': node.right}, 'hash': node.hash}
+        else:
+            node_as_json = {"_id": node.node_id, 'children': {'left': node.left_child_id, 'mid': node.mid_child_id,
+                                         'right': node.right_child_id},
+                            'values': {'left': node.left, 'right': node.right}, 'hash': node.hash}
+        self.nodes.insert_one(node_as_json)
+
     def create_23_node(self, key, children=None) -> 'Two3Node':
         if children is None:
             children = [None, None, None]
         temp_node = Two3Node("fake_id", key)
-        #temp_node.update(self.db)
+        # temp_node.update(self.db)
         if len(children) == 3:
             node = {'children': {'left': children[0],
                                  'mid': children[1],

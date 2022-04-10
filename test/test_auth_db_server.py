@@ -9,10 +9,10 @@ class AuthDBServerTest(unittest.TestCase):
 
     def setUp(self):
         self.server = AuthDBServer(MongoDB())
-
-    def test_all_nodes_have_hash_with_sorted_insertions(self):
         self.server.destroy_db()
 
+
+    def test_all_nodes_have_hash_with_sorted_insertions(self):
         for i in range(0, 100):
             self.server.insert(i)
 
@@ -21,8 +21,7 @@ class AuthDBServerTest(unittest.TestCase):
             self.assertTrue(node['hash'] is not None)
 
     def test_all_nodes_have_hash_with_random_insertions(self):
-        n = 40
-        self.server.destroy_db()
+        n = 10
 
         for i in range(0, n):
             self.server.insert(random.randint(0, n))
@@ -32,8 +31,6 @@ class AuthDBServerTest(unittest.TestCase):
             self.assertTrue(node['hash'] is not None)
 
     def test_inserting_floats_should_work(self):
-        self.server.destroy_db()
-
         for i in range(1, 20):
             self.server.insert(1/i)
 
@@ -41,8 +38,6 @@ class AuthDBServerTest(unittest.TestCase):
             self.assertTrue(self.server.contains(1/i))
 
     def test_inserting_negative_numbers_should_work(self):
-        self.server.destroy_db()
-
         for i in range(-10, 0):
             self.server.insert(i)
 
@@ -50,8 +45,6 @@ class AuthDBServerTest(unittest.TestCase):
             self.assertTrue(self.server.contains(i))
 
     def test_inserting_strings_should_work(self):
-        self.server.destroy_db()
-
         for i in range(10, 200):
             self.server.insert(chr(i))
 
@@ -59,8 +52,6 @@ class AuthDBServerTest(unittest.TestCase):
             self.assertTrue(self.server.contains(chr(i)))
 
     def test_40_sorted_insertions_should_give_38_nodes(self):
-        self.server.destroy_db()
-
         for i in range(0, 40):
             self.server.insert(i)
 
@@ -70,6 +61,27 @@ class AuthDBServerTest(unittest.TestCase):
             n += 1
 
         self.assertEqual(n, 38)
+
+    def test_deleting_an_element_should_remove_it_from_tree(self):
+        numbers = [i for i in range(0, 100)]
+        random.shuffle(numbers)
+
+        for i in numbers:
+            self.server.insert(i)
+
+        random.shuffle(numbers)
+        numbers_in_tree = numbers[0:50]
+        numbers_deleted = numbers_in_tree[50:100]
+
+        for v in numbers_deleted:
+            self.server.delete(v)
+
+        for n in numbers_deleted:
+            self.assertFalse(self.server.contains(n))
+
+        for n in numbers_in_tree:
+            self.assertTrue(self.server.contains(n))
+
 
 if __name__ == '__main__':
     unittest.main()

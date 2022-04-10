@@ -61,14 +61,15 @@ class AuthDBServer:
     def insert(self, value):
         if self.root_id is None:
             self.root_id = "root"
-            self.dbi.create_root(value, self.root_id)
+            root_node = Two3Node(self.root_id, value)
+            root_node.update_hash(self.dbi)
+            self.dbi.create_23_node_from_node(root_node)
+            root_node.update_hash(self.dbi)
             return
+
         insertion_node, parent = self.find_nearest_node_and_parent(value)
         insertion_node.parent = parent
         self.insert_at(insertion_node, value)
-        # Update hashes upwards
-        # TODO: We need to make sure that new nodes created are also handled
-        # self.update_upwards(insertion_node)
 
     def update_hashes_upwards(self, starting_node: 'Two3Node'):
         current = starting_node
