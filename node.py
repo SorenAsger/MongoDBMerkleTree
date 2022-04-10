@@ -54,6 +54,11 @@ class Two3Node:
     def is_leaf(self):
         return self.left_child_id is None
 
+    def get_values_and_child_hashes(self, db):
+        result = [self.get_values(), get_hash_from_node(self.left_child_id, db),
+                  get_hash_from_node(self.mid_child_id, db), get_hash_from_node(self.right_child_id, db)]
+        return result
+
     def update_hash(self, db):
         self.hash_function.update(get_hash_from_node(self.left_child_id, db))
         self.hash_function.update(self.left)

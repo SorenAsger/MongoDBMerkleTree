@@ -29,7 +29,7 @@ class AuthDBServer:
             depth += 1
             # If the value is in the current node
             if value in current.get_values():
-                return current, nearest_node
+                return current, nearest_node, path
             # 2-node
             if current.is_2_node():
                 if value < current.left:
@@ -50,10 +50,14 @@ class AuthDBServer:
             nearest_node = current
             current = self.dbi.get_23_node_by_id(child_id)
 
-        return nearest_node, parent
+        return nearest_node, parent, path
+
+    def get_membership_proof(self, value):
+        node_containing_value, parent, path = self.find_nearest_node_and_parent(value)
+        proof = []
 
     def contains(self, value):
-        nearest_node, _ = self.find_nearest_node_and_parent(value)
+        nearest_node, _, _ = self.find_nearest_node_and_parent(value)
         if nearest_node is None:
             return False
         return value in nearest_node.get_values()
@@ -67,7 +71,7 @@ class AuthDBServer:
             root_node.update_hash(self.dbi)
             return
 
-        insertion_node, parent = self.find_nearest_node_and_parent(value)
+        insertion_node, parent, _ = self.find_nearest_node_and_parent(value)
         insertion_node.parent = parent
         self.insert_at(insertion_node, value)
 
@@ -205,7 +209,7 @@ class AuthDBServer:
         if self.root_id is None:
             print("Tree is empty")
             return
-        nearest_node, parent = self.find_nearest_node_and_parent(value)
+        nearest_node, parent, _ = self.find_nearest_node_and_parent(value)
         contains_val = value in [nearest_node.left, nearest_node.right]
         last_elem = nearest_node.node_id == self.root_id and \
                     nearest_node.is_2_node() and \
@@ -290,7 +294,7 @@ class AuthDBServer:
         self.dbi.delete_left_right(node, delete_left)
 
     def delete_2_node_sib_2_node_parent(self, hole, sibling, parent):
-        _, new_parent = self.find_nearest_node_and_parent(parent.left)
+        _, new_parent, _ = self.find_nearest_node_and_parent(parent.left)
         if sibling.left < parent.left:
             values = [sibling.left, parent.left]
             children = [sibling.left_child_id, sibling.right_child_id, hole.left_child_id]

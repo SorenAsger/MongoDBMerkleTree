@@ -11,7 +11,6 @@ class AuthDBServerTest(unittest.TestCase):
         self.server = AuthDBServer(MongoDB())
         self.server.destroy_db()
 
-
     def test_all_nodes_have_hash_with_sorted_insertions(self):
         for i in range(0, 100):
             self.server.insert(i)
@@ -81,6 +80,12 @@ class AuthDBServerTest(unittest.TestCase):
 
         for n in numbers_in_tree:
             self.assertTrue(self.server.contains(n))
+
+    def test_all_nodes_should_have_hashes_after_deletions(self):
+        pass
+
+    def test_root_node_hash_should_change_after_deletion(self):
+        pass
 
 
 

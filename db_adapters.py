@@ -65,6 +65,7 @@ class MongoDB():
         nod.left_child_id = node["children"]["left"]
         nod.mid_child_id = node["children"]["mid"]
         nod.right_child_id = node["children"]["right"]
+        nod.hash = node["hash"]
         return nod
 
     def get_root(self):

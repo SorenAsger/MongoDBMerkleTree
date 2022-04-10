@@ -9,6 +9,7 @@ class cryptoUtilTest(unittest.TestCase):
         h.update(1234854312341212134210)
         h.update("INeedBetterTests!!!!!")
         h.update(0.0129823478921374198237413)
+
         self.assertEqual(len(h.digest()), 32)
 
     def test_hashing_None_should_do_nothing(self):
@@ -18,6 +19,7 @@ class cryptoUtilTest(unittest.TestCase):
         h1.update(12345)
         h2.update(12345)
         h2.update(None)
+
         self.assertEqual(h1.digest(), h2.digest())
 
 if __name__ == '__main__':
