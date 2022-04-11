@@ -11,7 +11,6 @@ class AuthDBServerTest(unittest.TestCase):
         self.server = AuthDBServer(MongoDB())
         self.server.destroy_db()
 
-
     def test_all_nodes_have_hash_with_sorted_insertions(self):
         for i in range(0, 100):
             self.server.insert(i)
@@ -21,10 +20,10 @@ class AuthDBServerTest(unittest.TestCase):
             self.assertTrue(node['hash'] is not None)
 
     def test_all_nodes_have_hash_with_random_insertions(self):
-        n = 10
-
-        for i in range(0, n):
-            self.server.insert(random.randint(0, n))
+        numbers = [i for i in range(0, 100)]
+        random.shuffle(numbers)
+        for x in numbers:
+            self.server.insert(x)
 
         cursor = self.server.get_db_cursor()
         for node in cursor:
@@ -82,6 +81,16 @@ class AuthDBServerTest(unittest.TestCase):
         for n in numbers_in_tree:
             self.assertTrue(self.server.contains(n))
 
+    def test_root_hash_changes_after_insertion(self):
+        numbers = [i for i in range(0, 100)]
+        random.shuffle(numbers)
+
+        for x in numbers:
+            bef_hash = self.server.get_root_hash()
+            self.server.insert(x)
+            aft_hash = self.server.get_root_hash()
+            self.assertFalse(bef_hash == aft_hash)
+
     def test_root_hash_changes_after_deletion(self):
         numbers = [i for i in range(0, 100)]
         random.shuffle(numbers)
@@ -97,8 +106,6 @@ class AuthDBServerTest(unittest.TestCase):
             self.server.delete(val)
             aft_hash = self.server.get_root_hash()
             self.assertFalse(bef_hash == aft_hash)
-
-
 
 
 if __name__ == '__main__':

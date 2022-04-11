@@ -18,7 +18,7 @@ class AuthDBServer:
         return min_node, max_node, values[1]
 
     def find_nearest_node_and_parent(self, value):
-        current = self.dbi.get_root()
+        current = self.dbi.get_23_node_by_id(self.root_id)
         parent = None
         nearest_node = None
         depth = 0

@@ -55,18 +55,6 @@ class MongoDB():
         nod.hash = node["hash"]
         return nod
 
-    def get_root(self):
-        node = self.nodes.find_one({'_id': self.root_id})
-        if node is None:
-            return None
-        nod = Two3Node(self.root_id, node["values"]["left"])
-        nod.right = node["values"]["right"]
-        nod.left_child_id = node["children"]["left"]
-        nod.mid_child_id = node["children"]["mid"]
-        nod.right_child_id = node["children"]["right"]
-        nod.hash = node["hash"]
-        return nod
-
     def create_root(self, value, root_id):
         root = {"_id": root_id, 'children': {'left': None, 'mid': None, 'right': None},
                 'values': {'left': value, 'right': None}}
@@ -87,22 +75,18 @@ class MongoDB():
     def create_23_node(self, key, children=None) -> 'Two3Node':
         if children is None:
             children = [None, None, None]
-        temp_node = Two3Node("fake_id", key)
-        # temp_node.update(self.db)
         if len(children) == 3:
             node = {'children': {'left': children[0],
                                  'mid': children[1],
                                  'right': children[2]},
                     'values': {'left': key,
-                               'right': None},
-                    'hash': temp_node.hash}
+                               'right': None}}
         else:
             node = {'children': {'left': children[0],
                                  'mid': None,
                                  'right': children[1]},
                     'values': {'left': key,
-                               'right': None},
-                    'hash': temp_node.hash}
+                               'right': None}}
         node_id = self.nodes.insert_one(node).inserted_id
         two_3_node = Two3Node(node_id, key)
         two_3_node.left_child_id = children[0]
