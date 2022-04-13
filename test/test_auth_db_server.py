@@ -61,6 +61,16 @@ class AuthDBServerTest(unittest.TestCase):
 
         self.assertEqual(n, 38)
 
+    def test_root_hash_should_change_after_each_insertion(self):
+        numbers = [i for i in range(0, 100)]
+        random.shuffle(numbers)
+
+        prev_root_hash = None
+        for n in numbers:
+            self.server.insert(n)
+            self.assertNotEqual(prev_root_hash, self.server.get_root_hash())
+            prev_root_hash = self.server.get_root_hash()
+
     def test_deleting_an_element_should_remove_it_from_tree(self):
         numbers = [i for i in range(0, 100)]
         random.shuffle(numbers)

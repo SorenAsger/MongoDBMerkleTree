@@ -5,8 +5,14 @@ class HashFunction:
     def __init__(self):
         self.m = hashlib.sha256()
 
+    # Digest both returns the hash of the
+    # bytes so far and creates a new instance
+    # of the hash object.
     def digest(self):
-        return self.m.digest()
+        result = self.m.digest()
+        self.m = hashlib.sha256()
+        return result
+
 
     def update(self, value):
         if value is not None:

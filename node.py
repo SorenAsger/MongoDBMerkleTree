@@ -54,18 +54,34 @@ class Two3Node:
     def is_leaf(self):
         return self.left_child_id is None
 
-    def get_values_and_child_hashes(self, db):
-        result = [self.get_values(), get_hash_from_node(self.left_child_id, db),
-                  get_hash_from_node(self.mid_child_id, db), get_hash_from_node(self.right_child_id, db)]
+    def get_proof_values_and_hashes(self, db, calling_child_id):
+        # Omit the calling childs ID
+        # We do not need it as the verifier
+        # Calculates this hash himself.
+        result = [self.get_values()]
+        if calling_child_id == self.left_child_id:
+            result.append("caller")
+        else:
+            result.append(get_hash_from_node(self.left_child_id, db))
+
+        if calling_child_id == self.mid_child_id:
+            result.append("caller")
+        else:
+            result.append(get_hash_from_node(self.mid_child_id, db))
+
+        if calling_child_id == self.right_child_id:
+            result.append("caller")
+        else:
+            result.append(get_hash_from_node(self.right_child_id, db))
+
         return result
 
     def update_hash(self, db):
-        self.hash_function.update(get_hash_from_node(self.left_child_id, db))
         self.hash_function.update(self.left)
-        self.hash_function.update(get_hash_from_node(self.mid_child_id, db))
         if not self.is_2_node():
             self.hash_function.update(self.right)
-        self.hash_function.update(self.right)
+        self.hash_function.update(get_hash_from_node(self.left_child_id, db))
+        self.hash_function.update(get_hash_from_node(self.mid_child_id, db))
         self.hash_function.update(get_hash_from_node(self.right_child_id, db))
         self.hash = self.hash_function.digest()
         db.update_23_node(self)

@@ -8,6 +8,13 @@ class AuthDBServer:
         self.root_id = None
         self.dbi = dbi
 
+    def get_root_hash(self):
+        rootNode = self.dbi.get_root()
+        if rootNode is None:
+            return None
+        else:
+            return rootNode.hash
+
     def split_node(self, node, value, left_children=None, right_children=None):
         values = [node.left, node.right, value]
         values.sort()
@@ -53,8 +60,30 @@ class AuthDBServer:
         return nearest_node, parent, path
 
     def get_membership_proof(self, value):
-        node_containing_value, parent, path = self.find_nearest_node_and_parent(value)
+        current, parent, path = self.find_nearest_node_and_parent(value)
+        if value not in current.get_values():
+            return None
+
+        # The order of a proof is:
+        # 1. left
+        # 2. right
+        # 3. left child
+        # 4. Mid child
+        # 5. Right child
         proof = []
+
+        # For each node upwards append the
+        # values and child hashes to the proof,
+        # but omit the calling child's hash.
+        # The calling childs hash is not necessary
+        # since that is the one the verifier calculates
+        prev_node_id = - 1
+        while current is not None:
+            proof.append(current.get_proof_values_and_hashes(self.dbi, prev_node_id))
+            prev_node_id = current.node_id
+            current = current.parent
+
+        return proof
 
     def contains(self, value):
         nearest_node, _, _ = self.find_nearest_node_and_parent(value)

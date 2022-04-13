@@ -9,19 +9,11 @@ server = AuthDBServer(MongoDB())
 def insert_many(n):
     for i in range(0, n):
         server.insert(random.randint(0, n))
-    server.print_db()
 
 
 def insert_sorted(n):
     for i in range(0, n):
         server.insert(i)
-    print("bef", server.contains(4))
-    server.print_tree()
-    node = server.delete(4)
-
-    print("aft", server.contains(4))
-    server.print_tree()
-    #server.print_db()
 
 def spec():
     list = [i for i in range(0,1000)]
@@ -42,8 +34,11 @@ def spec():
 
 
 server.destroy_db()
-spec()
-#insert_sorted(7)
+insert_sorted(7)
+server.print_db()
+server.print_tree()
+a = server.get_membership_proof(1)
+print(a)
 
 
 '''

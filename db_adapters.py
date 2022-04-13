@@ -77,11 +77,12 @@ class MongoDB():
         nod.left_child_id = node["children"]["left"]
         nod.mid_child_id = node["children"]["mid"]
         nod.right_child_id = node["children"]["right"]
+        nod.hash = node["hash"]
         return nod
 
     def create_root(self, value, root_id):
         root = {"_id": root_id, 'children': {'left': None, 'mid': None, 'right': None},
-                'values': {'left': value, 'right': None}}
+                'values': {'left': value, 'right': None}, 'hash': None}
         self.nodes.insert_one(root)
         return Two3Node(root["_id"], value)
 
