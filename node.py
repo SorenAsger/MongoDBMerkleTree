@@ -28,6 +28,23 @@ class HoleNode:
         self.parent = node.parent
         self.left_child_id = child
 
+    def update_23_node_value_children(self, db, values, children=None):
+        if values[1] is not None:
+            values.sort()
+        if children is None:
+            children = [None, None, None]
+        node = self.make_23_node(values, children)
+        node.update_hash(db)
+
+    def make_23_node(self, values, children):
+        node = Two3Node(self.node_id, values[0])
+        node.parent = self.parent
+        node.right = values[1]
+        node.left_child_id = children[0]
+        node.mid_child_id = children[1]
+        node.right_child_id = children[2]
+        return node
+
     def is_2_node(self):
         return True
 
@@ -84,7 +101,19 @@ class Two3Node:
         self.hash_function.update(get_hash_from_node(self.mid_child_id, db))
         self.hash_function.update(get_hash_from_node(self.right_child_id, db))
         self.hash = self.hash_function.digest()
+
         db.update_23_node(self)
+
+    def update_23_node_value_children(self, db, values, children=None):
+        if values[1] is not None:
+            values.sort()
+        self.left = values[0]
+        self.right = values[1]
+        if children is not None:
+            self.left_child_id = children[0]
+            self.mid_child_id = children[1]
+            self.right_child_id = children[2]
+        self.update_hash(db)
 
     def get_values(self):
         return [self.left, self.right]
