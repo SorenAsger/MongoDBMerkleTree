@@ -46,8 +46,7 @@ class AuthDBServer:
                     child_id = current.right_child_id
                 else:
                     child_id = current.mid_child_id
-            if current is None:
-                print("fuffufuckckck")
+
             parent = nearest_node
             nearest_node = current
             current = self.dbi.get_23_node_by_id(child_id)
@@ -56,7 +55,6 @@ class AuthDBServer:
         return nearest_node, parent, path
 
     def get_membership_proof(self, value):
-        self.print_tree()
         current, parent, path = self.find_nearest_node_and_parent(value)
         if value not in current.get_values():
             return None

@@ -33,8 +33,6 @@ class MongoDB():
         return HoleNode(node, child)
 
     def remove_23_node(self, node_id):
-        if (node_id == "root"):
-            print("AAAAAAAAAA")
         filter = {"_id": node_id}
         self.nodes.delete_one(filter)
 

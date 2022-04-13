@@ -11,7 +11,7 @@ class VerifierTest(unittest.TestCase):
     def setUp(self):
         self.server = AuthDBServer(MongoDB())
         self.server.destroy_db()
-        self.verifier = Verifier()
+        self.verifier = Verifier(self.server)
 
     def test_values_in_db_should_be_verified(self):
         self.insert_sorted(100)

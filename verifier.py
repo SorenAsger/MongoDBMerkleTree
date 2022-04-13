@@ -5,8 +5,8 @@ from db_adapters import MongoDB
 
 class Verifier:
 
-    def __init__(self):
-        self.server = AuthDBServer(MongoDB())
+    def __init__(self, server):
+        self.server = server
         self.server.destroy_db()
         self.hash_function = HashFunction()
 
