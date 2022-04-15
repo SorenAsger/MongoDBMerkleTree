@@ -41,8 +41,6 @@ class AuthDBServer:
                 if value < current.left:
                     child_id = current.left_child_id
                 elif value > current.right:
-                    # not super pretty, maybe abstract away into a method of Node?
-                    # Have it return the correct child id
                     child_id = current.right_child_id
                 else:
                     child_id = current.mid_child_id
@@ -54,11 +52,7 @@ class AuthDBServer:
 
         return nearest_node, parent, path
 
-    def get_membership_proof(self, value):
-        current, parent, path = self.find_nearest_node_and_parent(value)
-        if value not in current.get_values():
-            return None
-
+    def build_proof(self, current):
         # The order of a proof is:
         # 1. left
         # 2. right
@@ -70,15 +64,27 @@ class AuthDBServer:
         # For each node upwards append the
         # values and child hashes to the proof,
         # but omit the calling child's hash.
-        # The calling childs hash is not necessary
+        # The calling child's hash is not necessary
         # since that is the one the verifier calculates
         prev_node_id = - 1
         while current is not None:
             proof.append(current.get_proof_values_and_hashes(self.dbi, prev_node_id))
             prev_node_id = current.node_id
             current = current.parent
-
         return proof
+
+    def get_membership_proof(self, value):
+        current, parent, path = self.find_nearest_node_and_parent(value)
+        if value not in current.get_values():
+            return None
+        return self.build_proof(current)
+
+    def get_non_membership_proof(self, value):
+        current, parent, path = self.find_nearest_node_and_parent(value)
+        if value in current.get_values():
+            return None
+        return self.build_proof(current)
+
 
     def contains(self, value):
         nearest_node, _, _ = self.find_nearest_node_and_parent(value)
