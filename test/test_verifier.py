@@ -15,8 +15,7 @@ class VerifierTest(unittest.TestCase):
 
     def test_values_in_db_should_be_verified(self):
         self.insert_sorted(100)
-        self.server.print_db()
-        for i in range(1, 2):
+        for i in range(0, 100):
             membership = self.verifier.verify_membership(i)
             self.assertTrue(membership)
 
@@ -24,22 +23,6 @@ class VerifierTest(unittest.TestCase):
         self.insert_sorted(100)
         for i in range(100, 200):
             self.assertTrue(self.verifier.verify_non_membership(i))
-
-    def test_correct_adjacent_values_should_be_found(self):
-        numbers = list(range(0, 10, 2))
-        value = 5
-        lower, upper = self.verifier.find_adjacent_values(numbers, value)
-        self.assertEqual(lower, 4)
-        self.assertEqual(upper, 6)
-
-    def test_all_values_in_proof_should_be_found(self):
-        self.insert_sorted(7)
-        proof = self.server.get_membership_proof(1)
-        numbers = self.verifier.get_all_values_in_proof(proof)
-        numbers.sort()
-        self.assertEqual(numbers[0], 1)
-        self.assertEqual(numbers[1], 3)
-        self.assertEqual(len(numbers), 2)
 
     def insert_many(self, n):
         for i in range(0, n):
