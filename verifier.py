@@ -52,7 +52,7 @@ class Verifier:
             for i in range(0, len(values_in_proof)):
                 x = values_in_proof[i]
                 if lower == x:
-                    assert values_in_proof[i+1] == upper
+                    assert values_in_proof[i + 1] == upper
 
         # Build proof and compare to root hash
         root_hash = self.build_root_hash(proof)
@@ -61,15 +61,22 @@ class Verifier:
     def build_root_hash(self, proof):
         prev_hash = None
         for node in proof:
-            self.hash_function.update(node[0][0])  # left value
-            self.hash_function.update(node[0][1])  # right value
+            left = node[0][0]
+            right = node[0][1]
+            self.hash_function.update(left)
+            if right is not None:
+                assert (left < right)
+                self.hash_function.update(right)
             # Set the previously calculated hash to the hash
             # of calling child of node's hash
             for i in range(1, 4):
                 if node[i] == 'caller':
                     node[i] = prev_hash
-            self.hash_function.update(node[1])  # Left child hash
-            self.hash_function.update(node[2])  # mid child hash
-            self.hash_function.update(node[3])  # right child hash
+            left_child_hash = node[1]
+            mid_child_hash = node[2]
+            right_child_hash = node[3]
+            self.hash_function.update(left_child_hash)
+            self.hash_function.update(mid_child_hash)
+            self.hash_function.update(right_child_hash)
             prev_hash = self.hash_function.digest()
         return prev_hash

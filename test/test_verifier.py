@@ -15,13 +15,10 @@ class VerifierTest(unittest.TestCase):
 
     def test_values_in_db_should_be_verified(self):
         self.insert_sorted(100)
-        for i in range(0, 100):
-            self.assertTrue(self.verifier.verify_membership(i))
-
-    def test_values_not_in_db_should_not_be_verified(self):
-        self.insert_sorted(100)
-        for i in range(0, 100):
-            self.assertTrue(self.verifier.verify_membership(i))
+        self.server.print_db()
+        for i in range(1, 2):
+            membership = self.verifier.verify_membership(i)
+            self.assertTrue(membership)
 
     def test_values_not_in_db_should_not_be_verified(self):
         self.insert_sorted(100)
