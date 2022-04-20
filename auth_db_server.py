@@ -106,9 +106,11 @@ class AuthDBServer:
 
     def update_hashes_upwards(self, starting_node: 'Two3Node'):
         current = starting_node
+        updated_nodes = []
         while current is not None:
-            current.update_hash(self.dbi)
+            updated_nodes.append(current.update_hash(self.dbi))
             current = current.parent
+        #self.dbi.update_many_23_nodes(updated_nodes)
 
     def insert_at(self, insertion_node: 'Two3Node', value):
         parent = insertion_node.parent

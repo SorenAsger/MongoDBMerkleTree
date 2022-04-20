@@ -110,7 +110,7 @@ class AuthDBServerTest(unittest.TestCase):
 
         random.shuffle(numbers)
 
-        for i in range(0,50):
+        for i in range(0, 50):
             bef_hash = self.server.get_root_hash()
             val = numbers[i]
             self.server.delete(val)

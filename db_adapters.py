@@ -23,10 +23,9 @@ class MongoDB():
             values = {'left': node.left, 'right': node.right}
             update_value = {"$set": {'children': children, 'values': values, 'hash': node.hash}}
             filter = {"_id": node.node_id}
-            UpdateOne(filter, update_value)
             operations.append(UpdateOne(filter, update_value))
-        self.nodes.bulk_write(operations)
 
+        self.nodes.bulk_write(operations)
 
     def new_root(self, node_id):
         node = self.nodes.find_one({'_id': node_id})

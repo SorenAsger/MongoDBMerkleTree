@@ -97,12 +97,17 @@ class Two3Node:
         self.hash_function.update(self.left)
         if not self.is_2_node():
             self.hash_function.update(self.right)
-        self.hash_function.update(get_hash_from_node(self.left_child_id, db))
-        self.hash_function.update(get_hash_from_node(self.mid_child_id, db))
-        self.hash_function.update(get_hash_from_node(self.right_child_id, db))
+        child_ids = self.get_child_ids()
+        hashes = get_hashes_from_nodes(child_ids, db)
+        self.hash_function.update(hashes[0])
+        self.hash_function.update(hashes[1])
+        self.hash_function.update(hashes[2])
         self.hash = self.hash_function.digest()
-
         db.update_23_node(self)
+        return self
+
+    def get_child_ids(self):
+        return [self.left_child_id, self.mid_child_id, self.right_child_id]
 
     def update_23_node_value_children(self, db, values, children=None):
         if values[1] is not None:
@@ -148,3 +153,16 @@ def get_hash_from_node(child_id, db) -> bytes:
     if child_id is not None:
         return db.get_23_node_by_id(child_id).hash
     return None
+
+
+def get_hashes_from_nodes(ids, db):
+    assert len(ids) == 3
+    if ids[0] is None:
+        return [None, None, None]
+    if ids[1] is None:
+        nodes = db.get_many_23_nodes_by_ids([ids[0], ids[2]])
+        hashes = [nodes[0].hash, None, nodes[1].hash]
+    else:
+        nodes = db.get_many_23_nodes_by_ids(ids)
+        hashes = [node.hash for node in nodes]
+    return hashes
