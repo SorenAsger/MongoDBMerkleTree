@@ -46,7 +46,6 @@ class Verifier:
             else:
                 right < value
 
-
     def build_root_hash(self, proof, value):
         prev_hash = None
         first_node = True
@@ -80,3 +79,4 @@ class Verifier:
             prev_hash = self.hash_function.digest()
             first_node = False
         return prev_hash
+

@@ -85,7 +85,6 @@ class AuthDBServer:
             return None
         return self.build_proof(current)
 
-
     def contains(self, value):
         nearest_node, _, _ = self.find_nearest_node_and_parent(value)
         if nearest_node is None:
@@ -496,6 +495,7 @@ class AuthDBServer:
 
     def destroy_db(self):
         self.dbi.destroy_db()
+        self.root = None
 
     def tree_to_str(self, node: 'Two3Node', depth=0):
         if node is None:
