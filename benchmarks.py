@@ -103,6 +103,7 @@ def plot_non_membership_witness_size(n):
     plt.plot(x_values, witness_lenghts)
     plt.show()
 
-plot_avg_deletion_time(6)
 plot_avg_insertion_time(6)
+plot_avg_deletion_time(6)
+plot_membership_witness_size(100)
 plot_non_membership_witness_size(100)

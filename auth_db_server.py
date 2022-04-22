@@ -247,7 +247,7 @@ class AuthDBServer:
                     contains_val and \
                     nearest_node.left_child_id is None
         if last_elem:
-            self.dbi.remove_23_node(nearest_node.node_id)
+            self.cache.delete(nearest_node.node_id)
             self.root_id = None
         elif nearest_node is not None and contains_val:
             self.delete_at(value, nearest_node)
