@@ -28,13 +28,14 @@ class HoleNode:
         self.parent = node.parent
         self.left_child_id = child
 
-    def update_23_node_value_children(self, db, values, children=None):
+    def update_23_node_value_children(self, cache, values, children=None):
         if values[1] is not None:
             values.sort()
         if children is None:
             children = [None, None, None]
         node = self.make_23_node(values, children)
-        node.update_hash(db)
+        node.update_hash(cache)
+        return node
 
     def make_23_node(self, values, children):
         node = Two3Node(self.node_id, values[0])
@@ -93,23 +94,22 @@ class Two3Node:
 
         return result
 
-    def update_hash(self, db):
+    def update_hash(self, cache):
         self.hash_function.update(self.left)
         if not self.is_2_node():
             self.hash_function.update(self.right)
         child_ids = self.get_child_ids()
-        hashes = get_hashes_from_nodes(child_ids, db)
+        hashes = get_hashes_from_nodes(child_ids, cache)
         self.hash_function.update(hashes[0])
         self.hash_function.update(hashes[1])
         self.hash_function.update(hashes[2])
         self.hash = self.hash_function.digest()
-        db.update_23_node(self)
         return self
 
     def get_child_ids(self):
         return [self.left_child_id, self.mid_child_id, self.right_child_id]
 
-    def update_23_node_value_children(self, db, values, children=None):
+    def update_23_node_value_children(self, cache, values, children=None):
         if values[1] is not None:
             values.sort()
         self.left = values[0]
@@ -118,7 +118,8 @@ class Two3Node:
             self.left_child_id = children[0]
             self.mid_child_id = children[1]
             self.right_child_id = children[2]
-        self.update_hash(db)
+        self.update_hash(cache)
+        return self
 
     def get_values(self):
         return [self.left, self.right]
@@ -155,14 +156,12 @@ def get_hash_from_node(child_id, db) -> bytes:
     return None
 
 
-def get_hashes_from_nodes(ids, db):
+def get_hashes_from_nodes(ids, cache):
     assert len(ids) == 3
     if ids[0] is None:
         return [None, None, None]
     if ids[1] is None:
-        nodes = db.get_many_23_nodes_by_ids([ids[0], ids[2]])
-        hashes = [nodes[0].hash, None, nodes[1].hash]
+        hashes = [cache.get(ids[0]).hash, None, cache.get(ids[2]).hash]
     else:
-        nodes = db.get_many_23_nodes_by_ids(ids)
-        hashes = [node.hash for node in nodes]
+        hashes = [cache.get(id).hash for id in ids]
     return hashes

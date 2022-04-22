@@ -5,8 +5,8 @@ from node import Two3Node
 
 class Cache:
 
-    def __init__(self, _dbi):
-        self.dbi = _dbi
+    def __init__(self, dbi):
+        self.dbi = dbi
         self._deleted = []
         self._added = {}
         self._updated = {}
@@ -23,9 +23,7 @@ class Cache:
         node_to_insert = Two3Node(None, key)
 
         if children is None:
-            node_to_insert.left_child_id = None
-            node_to_insert.mid_child_id = None
-            node_to_insert.right_child_id = None
+            children = [None, None, None]
 
         if len(children) == 3:
             node_to_insert.left_child_id = children[0]
@@ -60,8 +58,13 @@ class Cache:
     def delete(self, node_id):
         self._deleted.append(node_id)
 
+    def reset(self):
+        self._deleted = []
+        self._added = {}
+        self._updated = {}
+
     def write_cache_to_db(self):
+        self.dbi.delete_many_23_nodes(self._deleted)
         self.dbi.create_many_23_nodes_from_node(list(self._added.values()))
         self.dbi.update_many_23_nodes(list(self._updated.values()))
-        self.dbi.delete_many_23_nodes(self._deleted)
-
+        self.reset()
