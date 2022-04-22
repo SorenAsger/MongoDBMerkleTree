@@ -72,7 +72,7 @@ class Two3Node:
     def is_leaf(self):
         return self.left_child_id is None
 
-    def get_proof_values_and_hashes(self, db, calling_child_id):
+    def get_proof_values_and_hashes(self, cache, calling_child_id):
         # Omit the calling childs ID
         # We do not need it as the verifier
         # Calculates this hash himself.
@@ -80,17 +80,17 @@ class Two3Node:
         if calling_child_id == self.left_child_id:
             result.append("caller")
         else:
-            result.append(get_hash_from_node(self.left_child_id, db))
+            result.append(get_hash_from_node(self.left_child_id, cache))
 
         if calling_child_id == self.mid_child_id:
             result.append("caller")
         else:
-            result.append(get_hash_from_node(self.mid_child_id, db))
+            result.append(get_hash_from_node(self.mid_child_id, cache))
 
         if calling_child_id == self.right_child_id:
             result.append("caller")
         else:
-            result.append(get_hash_from_node(self.right_child_id, db))
+            result.append(get_hash_from_node(self.right_child_id, cache))
 
         return result
 
@@ -150,9 +150,9 @@ class Two3Node:
                f"Values {self.left}, {self.right}"
 
 
-def get_hash_from_node(child_id, db) -> bytes:
+def get_hash_from_node(child_id, cache) -> bytes:
     if child_id is not None:
-        return db.get_23_node_by_id(child_id).hash
+        return cache.get(child_id).hash
     return None
 
 

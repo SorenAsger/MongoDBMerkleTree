@@ -5,11 +5,12 @@ from node import Two3Node
 
 class Cache:
 
-    def __init__(self, dbi):
+    def __init__(self, dbi, write_to_db=True):
         self.dbi = dbi
         self._deleted = set()
         self._added = {}
         self._updated = {}
+        self.write_to_db = write_to_db
 
     def add(self, node):
         if node.node_id is None:
@@ -64,6 +65,9 @@ class Cache:
         self._updated = {}
 
     def write_cache_to_db(self):
+        if not self.write_to_db:
+            return
+
         self.dbi.delete_many_23_nodes(list(self._deleted))
         self.dbi.create_many_23_nodes_from_node(list(self._added.values()))
         self.dbi.update_many_23_nodes(list(self._updated.values()))

@@ -7,7 +7,7 @@ class AuthDBServer:
         print("Server started.")
         self.root_id = None
         self.dbi = dbi
-        self.cache = Cache(self.dbi)
+        self.cache = Cache(self.dbi, write_to_db=False)
 
     def split_node(self, node, value, left_children=None, right_children=None):
         values = [node.left, node.right, value]
@@ -70,7 +70,7 @@ class AuthDBServer:
         # since that is the one the verifier calculates
         prev_node_id = - 1
         while current is not None:
-            proof.append(current.get_proof_values_and_hashes(self.dbi, prev_node_id))
+            proof.append(current.get_proof_values_and_hashes(self.cache, prev_node_id))
             prev_node_id = current.node_id
             current = current.parent
         return proof
@@ -99,13 +99,13 @@ class AuthDBServer:
             root_node = Two3Node(self.root_id, value)
             root_node.update_hash(self.cache)
             self.cache.add(root_node)
-            #self.cache.write_cache_to_db()
+            self.cache.write_cache_to_db()
             return
 
         insertion_node, parent, _ = self.find_nearest_node_and_parent(value)
         insertion_node.parent = parent
         self.insert_at(insertion_node, value)
-        #self.cache.write_cache_to_db()
+        self.cache.write_cache_to_db()
 
     def update_hashes_upwards(self, starting_node: 'Two3Node'):
         current = starting_node
@@ -253,7 +253,7 @@ class AuthDBServer:
             self.delete_at(value, nearest_node)
         else:
             print("Value", value, "not in tree")
-        #self.cache.write_cache_to_db()
+        self.cache.write_cache_to_db()
 
     def delete_at(self, value, node):
         if node.is_leaf():
