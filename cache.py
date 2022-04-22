@@ -1,5 +1,3 @@
-
-
 class Cache:
 
     def __init__(self, dbi):
@@ -17,6 +15,8 @@ class Cache:
                 return self.added[node_id]
             if node_id in self.added:
                 return self.added[node_id]
+            else:
+                return self.dbi.get_23_node_by_id(node_id)
 
     def update(self, node_id, node):
         # If a node has been added to cache

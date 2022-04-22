@@ -2,7 +2,7 @@ import unittest
 
 from crypto_util import HashFunction
 
-class cryptoUtilTest(unittest.TestCase):
+class CryptoUtilTest(unittest.TestCase):
 
     def test_hashing_hash_correct_length_for_supported_types(self):
         h = HashFunction()
