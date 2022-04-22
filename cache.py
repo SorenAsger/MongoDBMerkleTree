@@ -7,6 +7,8 @@ class Cache:
         self.updated = {}
 
     def add(self, node):
+        if node.node_id in self.deleted:
+            self.deleted.remove(node.node_id)
         self.added[node.node_id] = node
 
     def get(self, node_id):
