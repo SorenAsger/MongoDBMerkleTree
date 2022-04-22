@@ -97,3 +97,33 @@ class CacheTest(unittest.TestCase):
         self.cache.write_cache_to_db()
         node_from_db = self.dbi.get_23_node_by_id(node.node_id)
         self.assertEqual(node_from_db.left, 3)
+
+    def test_deleting_a_node_and_then_adding_it_should_add_the_node(self):
+        node = Two3Node("id", 1)
+
+        self.cache.add(node)
+        self.cache.delete(node.node_id)
+        self.cache.add(node)
+
+        self.cache.write_cache_to_db()
+
+        node_from_db = self.dbi.get_23_node_by_id(node.node_id)
+        self.assertEqual(node_from_db.node_id, node.node_id)
+        self.assertEqual(node_from_db.left, node.left)
+
+    def test_add_using_key_and_children_hash_right_values_and_children(self):
+        node = self.cache.add_using_key_and_children(10, ["child_id_1", "child_id_2"])
+        node_from_cache = self.cache.get(node.node_id)
+
+        self.assertEqual(node_from_cache.left, 10)
+        self.assertEqual(node_from_cache.left_child_id, "child_id_1")
+        self.assertEqual(node_from_cache.right_child_id, "child_id_2")
+
+        self.cache.write_cache_to_db()
+
+        node_from_db = self.dbi.get_23_node_by_id(node.node_id)
+        self.assertEqual(node_from_db.left, 10)
+        self.assertEqual(node_from_db.left_child_id, "child_id_1")
+        self.assertEqual(node_from_db.right_child_id, "child_id_2")
+
+
