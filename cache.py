@@ -3,8 +3,8 @@ class Cache:
     def __init__(self, dbi):
         self.dbi = dbi
         self.deleted = []
-        self.added = {}
-        self.updated = {}
+        self.added = []
+        self.updated = []
 
     def add(self, node):
         if node.node_id in self.deleted:
@@ -14,7 +14,7 @@ class Cache:
     def get(self, node_id):
         if node_id not in self.deleted:
             if node_id in self.updated:
-                return self.added[node_id]
+                return self.updated[node_id]
             if node_id in self.added:
                 return self.added[node_id]
             else:

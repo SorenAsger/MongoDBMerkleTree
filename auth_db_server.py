@@ -1,5 +1,5 @@
 from node import Two3Node
-
+from cache import Cache
 
 class AuthDBServer:
 
@@ -7,18 +7,23 @@ class AuthDBServer:
         print("Server started.")
         self.root_id = None
         self.dbi = dbi
+        self.cache = Cache(self.dbi)
 
     def split_node(self, node, value, left_children=None, right_children=None):
         values = [node.left, node.right, value]
         values.sort()
         min_node = self.dbi.create_23_node(values[0], left_children)
         max_node = self.dbi.create_23_node(values[2], right_children)
-        min_node.update_hash(self.dbi)
-        max_node.update_hash(self.dbi)
+        self.cache.add(min_node)
+        self.cache.add(min_node)
+        min_node = min_node.update_hash_test(self.cache)
+        max_node = max_node.update_hash(self.cache)
+        self.cache.update(min_node)
+        self.cache.update(max_node)
         return min_node, max_node, values[1]
 
     def find_nearest_node_and_parent(self, value):
-        current = self.dbi.get_23_node_by_id(self.root_id)
+        current = self.cache.get(self.root_id)
         parent = None
         nearest_node = None
         depth = 0
@@ -47,8 +52,7 @@ class AuthDBServer:
 
             parent = nearest_node
             nearest_node = current
-            current = self.dbi.get_23_node_by_id(child_id)
-
+            current = self.cache.get(child_id)
 
         return nearest_node, parent, path
 
@@ -95,22 +99,22 @@ class AuthDBServer:
         if self.root_id is None:
             self.root_id = "root"
             root_node = Two3Node(self.root_id, value)
-            root_node.update_hash(self.dbi)
-            self.dbi.create_23_node_from_node(root_node)
-            root_node.update_hash(self.dbi)
+            root_node.update_hash(self.cache)
+            self.cache.add(root_node)
+            self.cache.write_cache_to_db()
             return
 
         insertion_node, parent, _ = self.find_nearest_node_and_parent(value)
         insertion_node.parent = parent
         self.insert_at(insertion_node, value)
+        self.cache.write_cache_to_db()
 
     def update_hashes_upwards(self, starting_node: 'Two3Node'):
         current = starting_node
         updated_nodes = []
         while current is not None:
-            updated_nodes.append(current.update_hash(self.dbi))
+            updated_nodes.append(current.update_hash(self.cache))
             current = current.parent
-        #self.dbi.update_many_23_nodes(updated_nodes)
 
     def insert_at(self, insertion_node: 'Two3Node', value):
         parent = insertion_node.parent
@@ -136,8 +140,8 @@ class AuthDBServer:
         # TODO: Update parent in database and delete insert_location from database
         # TODO: Could maybe be more efficient to not delete insert_location and reuse it instead?
         # TODO: Update upwards and hash thing
-        self.dbi.update_23_node(insert_location)
-        insert_location.update_hash(self.dbi)
+        self.cache.update(insert_location)
+        insert_location.update_hash(self.cache)
 
     def insert_3_node_3_parent(self, value, insert_location: 'Two3Node', parent: 'Two3Node'):
         min_node, max_node, mid = self.split_node(insert_location, value)
@@ -149,8 +153,8 @@ class AuthDBServer:
             all_children_id = [parent.left_child_id, parent.mid_child_id, min_node.node_id, max_node.node_id]
         values = sorted([parent.left, parent.right, mid])
         self.insert_3_node_help(parent, all_children_id, values)
-        self.dbi.update_23_node(parent)
-        self.dbi.remove_23_node(insert_location.node_id)
+        self.cache.update(parent)
+        self.cache.delete(insert_location.node_id)
         # TODO: Update parent in database and delete insert_location from database
         # TODO: Could maybe be more efficient to not delete insert_location and reuse it instead?
         # TODO: Update upwards and hash thing
@@ -159,9 +163,9 @@ class AuthDBServer:
         # Children ids are sorted
         parent = node.parent
         min_node = self.dbi.create_23_node(values[0], children_ids[:2])
-        min_node.update_hash(self.dbi)
+        min_node.update_hash(self.cache)
         max_node = self.dbi.create_23_node(values[2], children_ids[2:])
-        max_node.update_hash(self.dbi)
+        max_node.update_hash(self.cache)
 
         if parent is None:
             # Handle case for root
@@ -170,7 +174,7 @@ class AuthDBServer:
             node.left = values[1]
             node.right = None
             node.mid_child_id = None
-            self.dbi.update_23_node(node)
+            self.cache.update(node)
             self.update_hashes_upwards(node)
             # ROOT CASE SHOULD WORK
         elif parent.is_2_node():
@@ -185,8 +189,8 @@ class AuthDBServer:
             else:
                 parent.right = parent.left
                 parent.left = values[1]
-            self.dbi.update_23_node(parent)
-            self.dbi.remove_23_node(node.node_id)
+            self.cache.update(parent)
+            self.cache.delete(node.node_id)
             self.update_hashes_upwards(parent)
 
         else:
@@ -200,7 +204,7 @@ class AuthDBServer:
             else:
                 new_children_id = [parent.left_child_id, parent.mid_child_id, min_node.node_id, max_node.node_id]
             self.insert_3_node_help(parent, new_children_id, new_values)
-            self.dbi.remove_23_node(node.node_id)
+            self.cache.delete(node.node_id)
 
     def insert_3_node_2_parent(self, value, insert_location: 'Two3Node', parent: 'Two3Node'):
         # Create 2 new nodes for min and max
@@ -221,8 +225,8 @@ class AuthDBServer:
         # TODO: Update parent in database and delete insert_location from database
         # TODO: Could maybe be more efficient to not delete insert_location and reuse it instead?
         # TODO: Update upwards and hash thing
-        self.dbi.update_23_node(parent)
-        self.dbi.remove_23_node(insert_location.node_id)
+        self.cache.update(parent)
+        self.cache.delete(insert_location.node_id)
         self.update_hashes_upwards(parent)
 
     def insert_2_node(self, value, insert_location):
@@ -233,7 +237,7 @@ class AuthDBServer:
             insert_location.right = insert_location.left
             insert_location.left = value
         # push update to DB
-        self.dbi.update_23_node(insert_location)
+        self.cache.update(insert_location)
         self.update_hashes_upwards(insert_location)
 
     def delete(self, value):

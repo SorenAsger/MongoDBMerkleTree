@@ -106,6 +106,18 @@ class Two3Node:
         db.update_23_node(self)
         return self
 
+    def update_hash_test(self, cache):
+        self.hash_function.update(self.left)
+        if not self.is_2_node():
+            self.hash_function.update(self.right)
+        child_ids = self.get_child_ids()
+        hashes = [cache.get(x) for x in child_ids]
+        self.hash_function.update(hashes[0])
+        self.hash_function.update(hashes[1])
+        self.hash_function.update(hashes[2])
+        self.hash = self.hash_function.digest()
+        return self
+
     def get_child_ids(self):
         return [self.left_child_id, self.mid_child_id, self.right_child_id]
 
