@@ -99,13 +99,13 @@ class AuthDBServer:
             root_node = Two3Node(self.root_id, value)
             root_node.update_hash(self.cache)
             self.cache.add(root_node)
-            self.cache.write_cache_to_db()
+            #self.cache.write_cache_to_db()
             return
 
         insertion_node, parent, _ = self.find_nearest_node_and_parent(value)
         insertion_node.parent = parent
         self.insert_at(insertion_node, value)
-        self.cache.write_cache_to_db()
+        #self.cache.write_cache_to_db()
 
     def update_hashes_upwards(self, starting_node: 'Two3Node'):
         current = starting_node
@@ -253,7 +253,7 @@ class AuthDBServer:
             self.delete_at(value, nearest_node)
         else:
             print("Value", value, "not in tree")
-        self.cache.write_cache_to_db()
+        #self.cache.write_cache_to_db()
 
     def delete_at(self, value, node):
         if node.is_leaf():
@@ -567,6 +567,7 @@ class AuthDBServer:
     def destroy_db(self):
         self.dbi.destroy_db()
         self.root_id = None
+        self.cache.reset()
 
     def tree_to_str(self, node: 'Two3Node', depth=0):
         if node is None:

@@ -17,7 +17,7 @@ def insert_sorted(start, end):
         server.insert(i)
 
 server.destroy_db()
-cProfile.run('insert_sorted(0, 100)')
+cProfile.run('insert_sorted(0, 10000)')
 '''
 def plot_avg_insertion_time(n):
     server.destroy_db()

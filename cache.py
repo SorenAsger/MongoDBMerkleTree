@@ -7,7 +7,7 @@ class Cache:
 
     def __init__(self, dbi):
         self.dbi = dbi
-        self._deleted = []
+        self._deleted = set()
         self._added = {}
         self._updated = {}
 
@@ -56,15 +56,15 @@ class Cache:
             self._updated[node_id] = node
 
     def delete(self, node_id):
-        self._deleted.append(node_id)
+        self._deleted.add(node_id)
 
     def reset(self):
-        self._deleted = []
+        self._deleted = set()
         self._added = {}
         self._updated = {}
 
     def write_cache_to_db(self):
-        self.dbi.delete_many_23_nodes(self._deleted)
+        self.dbi.delete_many_23_nodes(list(self._deleted))
         self.dbi.create_many_23_nodes_from_node(list(self._added.values()))
         self.dbi.update_many_23_nodes(list(self._updated.values()))
         self.reset()
