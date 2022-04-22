@@ -24,8 +24,8 @@ class MongoDB():
             update_value = {"$set": {'children': children, 'values': values, 'hash': node.hash}}
             filter = {"_id": node.node_id}
             operations.append(UpdateOne(filter, update_value))
-
-        self.nodes.bulk_write(operations)
+        if len(operations) > 0:
+            self.nodes.bulk_write(operations)
 
     def new_root(self, node_id):
         node = self.nodes.find_one({'_id': node_id})
@@ -47,7 +47,7 @@ class MongoDB():
         self.nodes.delete_one(filter)
 
     def delete_many_23_nodes(self, node_ids):
-        self.nodes.deleteMany({'_id': {'$in': node_ids}})
+        self.nodes.delete_many({'_id': {'$in': node_ids}})
 
     def get_root_hash(self):
         node = self.nodes.find_one({'_id': self.root_id})
@@ -69,6 +69,8 @@ class MongoDB():
         return nod
 
     def get_many_23_nodes_by_ids(self, node_ids):
+        if len(node_ids) < 1:
+            return
         nodes = []
         filter = ({"_id": {"$in": node_ids}})
         nodes_in_json = self.nodes.find(filter)
@@ -107,7 +109,8 @@ class MongoDB():
         for node in nodes:
             node_as_json = self.convert_node_to_json(node)
             nodes_to_insert.append(node_as_json)
-        self.nodes.insert_many(nodes_to_insert)
+        if len(nodes_to_insert) > 0:
+            self.nodes.insert_many(nodes_to_insert)
 
     def create_23_node_from_node(self, node):
         node_as_json = self.convert_node_to_json(node)
