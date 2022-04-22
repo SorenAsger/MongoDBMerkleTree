@@ -97,3 +97,16 @@ class CacheTest(unittest.TestCase):
         self.cache.write_cache_to_db()
         node_from_db = self.dbi.get_23_node_by_id(node.node_id)
         self.assertEqual(node_from_db.left, 3)
+
+    def test_deleting_a_node_and_then_adding_it_should_add_the_node(self):
+        node = Two3Node("id", 1)
+
+        self.cache.add(node)
+        self.cache.delete(node.node_id)
+        self.cache.add(node)
+
+        self.cache.write_cache_to_db()
+
+        node_from_db = self.dbi.get_23_node_by_id(node.node_id)
+        self.assertEqual(node_from_db.node_id, node.node_id)
+        self.assertEqual(node_from_db.left, node.left)
