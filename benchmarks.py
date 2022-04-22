@@ -70,29 +70,39 @@ def plot_avg_deletion_time(n):
 
 def plot_membership_witness_size(n):
     server.destroy_db()
-    witness_size = []
     x_values = []
-    server.destroy_db()
 
-    insert_sorted(0, 2 ** (n - 1))
+    insert_sorted(0, n)
 
-    for i in range(1, n):
-        start_val = 2 ** (i - 1)
-        end_val = 2 ** i
+    witness_lenghts = []
+    for i in range(0, n):
+        witness_lenghts.append(len(server.get_membership_proof(i)))
+        x_values.append(i)
 
-        witness_lenghts = []
-        for j in range(start_val, end_val):
-            witness_lenghts.append(len(server.get_membership_proof(j)))
-
-        x_values.append(end_val)
-        avg_length = sum(witness_lenghts) / len(witness_lenghts)
-        witness_size.append(avg_length)
-    plt.title("Avg. membership proof length")
+    plt.title("Membership proof length")
     plt.xlabel("n")
     plt.ylabel("l")
-    plt.plot(x_values, witness_size)
+    plt.plot(x_values, witness_lenghts)
     plt.show()
 
-plot_avg_deletion_time(16)
-plot_avg_insertion_time(16)
-plot_membership_witness_size(16)
+def plot_non_membership_witness_size(n):
+    server.destroy_db()
+    x_values = []
+
+    insert_sorted(-20, 0)
+
+    witness_lenghts = []
+    for i in range(0, n):
+        proof = server.get_non_membership_proof(i)
+        witness_lenghts.append(len(proof))
+        x_values.append(i)
+
+    plt.title("Non-membership proof length")
+    plt.xlabel("n")
+    plt.ylabel("l")
+    plt.plot(x_values, witness_lenghts)
+    plt.show()
+
+plot_avg_deletion_time(6)
+plot_avg_insertion_time(6)
+plot_non_membership_witness_size(100)

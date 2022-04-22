@@ -7,7 +7,7 @@ class AuthDBServer:
         print("Server started.")
         self.root_id = None
         self.dbi = dbi
-        self.cache = Cache(self.dbi, write_to_db=False)
+        self.cache = Cache(self.dbi, write_to_db=True)
 
     def split_node(self, node, value, left_children=None, right_children=None):
         values = [node.left, node.right, value]
