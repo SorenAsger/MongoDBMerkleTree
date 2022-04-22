@@ -46,7 +46,7 @@ class MongoDB():
         filter = {"_id": node_id}
         self.nodes.delete_one(filter)
 
-    def remove_many_23_nodes(self, node_ids):
+    def delete_many_23_nodes(self, node_ids):
         self.nodes.deleteMany({'_id': {'$in': node_ids}})
 
     def get_root_hash(self):
