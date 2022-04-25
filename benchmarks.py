@@ -1,5 +1,6 @@
 import cProfile
 import math
+import numpy as np
 import random
 import timeit
 import matplotlib.pyplot as plt
@@ -20,6 +21,9 @@ def insert_sorted(start, end):
     for i in range(start, end):
         server.insert(i)
 
+def moving_average(x, w):
+    return np.convolve(x, np.ones(w), 'valid') / w
+
 server.destroy_db()
 #cProfile.run('insert_sorted(0, 1000)')
 
@@ -29,18 +33,36 @@ def plot_avg(n, interval_length, function):
     x_values = []
 
     for j in range(1, n, interval_length):
-        server.destroy_db()
+
         start = timeit.default_timer()
-        function(0, j)
+        for i in range(j, j + interval_length):
+            if i == 13641:
+                print("hej")
+            else:
+                function(i)
         end = timeit.default_timer()
 
-        avg_y = (end - start) / j
+        avg_y = (end - start) / interval_length
         y_values.append(avg_y)
         x_values.append(j)
 
+    for v in y_values:
+        if v > 5.0720000000015195 * 10 ** (-5) * 20:
+            print("hallelujah")
+            index = y_values.index(v)
+            print(v)
+            print("x: ", x_values[index])
     plt.title("Avg. insertion time")
     plt.xlabel("n")
     plt.ylabel("t")
+    print(len(y_values))
+    print(y_values)
+    ma_w = 1
+    y_values = moving_average(y_values, ma_w).tolist()
+    print("After MA")
+    print(len(y_values))
+    print(y_values)
+    x_values = x_values[ma_w - 1:]
     plt.plot(x_values, y_values)
     plt.show()
 
@@ -131,4 +153,4 @@ def plot_non_membership_witness_size(n):
 #plot_avg_deletion_time(15)
 #plot_membership_witness_size(1000)
 #plot_non_membership_witness_size(1000)
-plot_avg(2000, 100, insert_many)
+plot_avg(22000, 10, server.insert)
