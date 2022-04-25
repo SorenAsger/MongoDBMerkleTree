@@ -3,14 +3,18 @@ import math
 import random
 import timeit
 import matplotlib.pyplot as plt
+
+from cache import Cache
 from db_adapters import MongoDB
 from auth_db_server import AuthDBServer
 
-server = AuthDBServer(MongoDB())
+dbi = MongoDB()
+cache=Cache(dbi, write_to_db=False)
+server = AuthDBServer(dbi, cache)
 
-def insert_many(n):
-    for i in range(0, n):
-        server.insert(random.randint(0, n))
+def insert_many(start, end):
+    for i in range(start, end):
+        server.insert(random.randint(0, 2 ** 128))
 
 def insert_sorted(start, end):
     for i in range(start, end):
@@ -19,18 +23,38 @@ def insert_sorted(start, end):
 server.destroy_db()
 #cProfile.run('insert_sorted(0, 1000)')
 
+def plot_avg(n, interval_length, function):
+    server.destroy_db()
+    y_values = []
+    x_values = []
+
+    for j in range(1, n, interval_length):
+        server.destroy_db()
+        start = timeit.default_timer()
+        function(0, j)
+        end = timeit.default_timer()
+
+        avg_y = (end - start) / j
+        y_values.append(avg_y)
+        x_values.append(j)
+
+    plt.title("Avg. insertion time")
+    plt.xlabel("n")
+    plt.ylabel("t")
+    plt.plot(x_values, y_values)
+    plt.show()
+
 def plot_avg_insertion_time(n):
     server.destroy_db()
     exec_times = []
     x_values = []
-    server.destroy_db()
 
     for i in range(1, n):
         start_val = 2 ** (i-1)
         end_val = 2 ** i
 
         start = timeit.default_timer()
-        insert_sorted(start_val, end_val)
+        insert_many(start_val, end_val)
         end = timeit.default_timer()
 
         x_values.append(end_val)
@@ -103,7 +127,8 @@ def plot_non_membership_witness_size(n):
     plt.plot(x_values, witness_lenghts)
     plt.show()
 
-plot_avg_insertion_time(6)
-plot_avg_deletion_time(6)
-plot_membership_witness_size(100)
-plot_non_membership_witness_size(100)
+#plot_avg_insertion_time(15)
+#plot_avg_deletion_time(15)
+#plot_membership_witness_size(1000)
+#plot_non_membership_witness_size(1000)
+plot_avg(2000, 100, insert_many)

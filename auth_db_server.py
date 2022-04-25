@@ -3,11 +3,14 @@ from cache import Cache
 
 class AuthDBServer:
 
-    def __init__(self, dbi):
+    def __init__(self, dbi, cache = None):
         print("Server started.")
         self.root_id = None
         self.dbi = dbi
-        self.cache = Cache(self.dbi, write_to_db=True)
+        if cache is None:
+            self.cache = Cache(self.dbi, write_to_db=True)
+        else:
+            self.cache = cache
 
     def split_node(self, node, value, left_children=None, right_children=None):
         values = [node.left, node.right, value]
