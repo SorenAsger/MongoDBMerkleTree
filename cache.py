@@ -7,6 +7,9 @@ class Cache:
 
     def __init__(self, dbi, write_to_db=True):
         self.dbi = dbi
+        self._deleted = []
+        self._added = {}
+        self._updated = {}
         self._deleted = set()
         self._added = {}
         self._updated = {}
