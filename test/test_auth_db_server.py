@@ -3,12 +3,14 @@ import unittest
 
 from db_adapters import MongoDB
 from auth_db_server import AuthDBServer
+from node import Two3Node
 
 
 class AuthDBServerTest(unittest.TestCase):
 
     def setUp(self):
         self.server = AuthDBServer(MongoDB())
+        self.cache = self.server.cache
         self.server.destroy_db()
 
     def test_all_nodes_have_hash_with_sorted_insertions(self):
@@ -111,10 +113,10 @@ class AuthDBServerTest(unittest.TestCase):
         random.shuffle(numbers)
 
         for i in range(0, 50):
-            bef_hash = self.server.get_root_hash()
+            bef_hash = self.cache.get("root").hash
             val = numbers[i]
             self.server.delete(val)
-            aft_hash = self.server.get_root_hash()
+            aft_hash = self.cache.get("root").hash
             self.assertFalse(bef_hash == aft_hash)
 
 

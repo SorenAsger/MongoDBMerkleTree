@@ -7,7 +7,7 @@ class AuthDBServer:
         print("Server started.")
         self.root_id = None
         self.dbi = dbi
-        self.cache = Cache(self.dbi)
+        self.cache = Cache(self.dbi, write_to_db=True)
 
     def split_node(self, node, value, left_children=None, right_children=None):
         values = [node.left, node.right, value]
@@ -70,7 +70,7 @@ class AuthDBServer:
         # since that is the one the verifier calculates
         prev_node_id = - 1
         while current is not None:
-            proof.append(current.get_proof_values_and_hashes(self.dbi, prev_node_id))
+            proof.append(current.get_proof_values_and_hashes(self.cache, prev_node_id))
             prev_node_id = current.node_id
             current = current.parent
         return proof
@@ -247,7 +247,7 @@ class AuthDBServer:
                     contains_val and \
                     nearest_node.left_child_id is None
         if last_elem:
-            self.dbi.remove_23_node(nearest_node.node_id)
+            self.cache.delete(nearest_node.node_id)
             self.root_id = None
         elif nearest_node is not None and contains_val:
             self.delete_at(value, nearest_node)
@@ -567,6 +567,7 @@ class AuthDBServer:
     def destroy_db(self):
         self.dbi.destroy_db()
         self.root_id = None
+        self.cache.reset()
 
     def tree_to_str(self, node: 'Two3Node', depth=0):
         if node is None:
@@ -582,4 +583,3 @@ class AuthDBServer:
             print("Empty tree")
         else:
             print(self.tree_to_str(self.cache.get(self.root_id)))
-
