@@ -433,12 +433,12 @@ class AuthDBServer:
         else:
             # right
             if sibling.left < parent.right:
-                lvalues = [sibling.left, parent.right]
-                lchildren = [sibling.left_child_id, sibling.right_child_id, hole.left_child_id]
+                rvalues = [sibling.left, parent.right]
+                rchildren = [sibling.left_child_id, sibling.right_child_id, hole.left_child_id]
                 parent_children = [parent.left_child_id, None, parent.right_child_id]
             else:
-                lvalues = [parent.right, sibling.left]
-                lchildren = [hole.left_child_id, sibling.left_child_id, sibling.right_child_id]
+                rvalues = [parent.right, sibling.left]
+                rchildren = [hole.left_child_id, sibling.left_child_id, sibling.right_child_id]
                 parent_children = [parent.left_child_id, None, parent.mid_child_id]
 
             # parent
@@ -446,7 +446,7 @@ class AuthDBServer:
 
             # remove hole
             self.cache.delete(sibling.node_id)
-            hole = hole.make_23_node(lvalues, lchildren)
+            hole = hole.make_23_node(rvalues, rchildren)
             self.cache.update(hole)
             parent.update_23_node_value_children(self.cache, pvalues, parent_children)
             self.cache.update(parent)
