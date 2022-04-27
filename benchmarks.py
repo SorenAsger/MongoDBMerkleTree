@@ -145,8 +145,9 @@ def plot_non_membership_witness_size(n):
 
 
 server.destroy_db()
-n = 10000
-plot_avg_time(n, 10, server.insert, "Avg. insertion time", "s", "n", 1)
-plot_avg_time(n, 10, verifier.verify_membership, "Avg. verification time", "s", "n", 1)
-
-plot_avg_time(n, 10, server.delete, "Avg. deletion time", "s", "n", 1)
+n = 100000
+interval = 1
+ma = 1
+plot_avg_time(n, interval, server.insert, "Avg. insertion time", "s", "n", ma)
+plot_avg_time(n, interval, verifier.verify_membership, "Avg. verification time", "s", "n", ma)
+plot_avg_time(n, interval, server.delete, "Avg. deletion time", "s", "n", ma)
