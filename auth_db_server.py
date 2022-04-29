@@ -598,7 +598,11 @@ class AuthDBServer:
         return self.dbi.nodes.find()
 
     def get_root_hash(self):
-        return self.dbi.get_root_hash()
+        root = self.cache.get(self.root_id)
+        if root is None:
+            return None
+        else:
+            return root.hash
 
     def destroy_db(self):
         self.dbi.destroy_db()

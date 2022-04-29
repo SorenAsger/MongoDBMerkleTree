@@ -49,13 +49,6 @@ class MongoDB():
     def delete_many_23_nodes(self, node_ids):
         self.nodes.delete_many({'_id': {'$in': node_ids}})
 
-    def get_root_hash(self):
-        node = self.nodes.find_one({'_id': self.root_id})
-        if node is None:
-            return None
-        else:
-            return node["hash"]
-
     def get_23_node_by_id(self, node_id):
         if node_id is None:
             return None
