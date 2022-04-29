@@ -1,4 +1,4 @@
-from node import Two3Node, HoleNode
+from node import Two3Node, HoleNode, get_hashes_from_nodes
 from cache import Cache
 
 class AuthDBServer:
@@ -86,7 +86,7 @@ class AuthDBServer:
 
     def get_non_membership_proof(self, value):
         current, parent, path = self.find_nearest_node_and_parent(value)
-        if value in current.get_values():
+        if current is None or value in current.get_values():
             return None
         return self.build_proof(current)
 
@@ -95,6 +95,40 @@ class AuthDBServer:
         if nearest_node is None:
             return False
         return value in nearest_node.get_values()
+
+    def get_insert_path(self, value):
+        current, parent, path = self.find_nearest_node_and_parent(value)
+        if current is None:
+            return current, path, []
+        hashes = []
+        for x in path:
+            ch = x.get_child_ids()
+            hashes.append(get_hashes_from_nodes(ch, self.cache))
+        return current, path, hashes
+
+    def get_delete_path(self, value):
+        current, parent, path = self.find_nearest_node_and_parent(value)
+        hashes = []
+        siblings = []
+        if not current.is_leaf():
+            succ = self.find_succ(current, value)
+            current, _, path = self.find_nearest_node_and_parent(succ.left)
+        last = None
+        path.reverse()
+        for x in path:
+            ch = x.get_child_ids()
+            if last is not None:
+                siblings.append(self.cache.get(x.get_sibling(last)))
+            hashes.append(get_hashes_from_nodes(ch, self.cache))
+            last = x
+        path.reverse()
+        hashes.reverse()
+        siblings.reverse()
+        sibling_hashes = []
+        for x in siblings:
+            ch = x.get_child_ids()
+            sibling_hashes.append(get_hashes_from_nodes(ch, self.cache))
+        return current, path, hashes, siblings, sibling_hashes
 
     def insert(self, value):
         if self.root_id is None:
@@ -453,7 +487,6 @@ class AuthDBServer:
             if hole.left_child_id is not None:
                 self.update_children(hole)
                 self.update_children(parent)
-            self.update_hashes_upwards(sibling)
             self.update_hashes_upwards(hole)
 
     def delete_3_node_sib_3_node_parent(self, hole, sibling, parent):

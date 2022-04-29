@@ -1,5 +1,7 @@
 import cProfile
 import math
+import time
+
 import numpy as np
 import random
 import timeit
@@ -10,7 +12,7 @@ from db_adapters import MongoDB
 from auth_db_server import AuthDBServer
 
 dbi = MongoDB()
-cache=Cache(dbi, write_to_db=False)
+cache=Cache(dbi, write_to_db=True)
 server = AuthDBServer(dbi, cache)
 
 def insert_many(start, end):
@@ -33,35 +35,23 @@ def plot_avg(n, interval_length, function):
     x_values = []
 
     for j in range(1, n, interval_length):
-
+        if (j - 1) % 1000 == 0:
+            print(j)
         start = timeit.default_timer()
         for i in range(j, j + interval_length):
-            if i == 13641:
-                print("hej")
-            else:
-                function(i)
+            function(i)
+
         end = timeit.default_timer()
 
         avg_y = (end - start) / interval_length
         y_values.append(avg_y)
         x_values.append(j)
 
-    for v in y_values:
-        if v > 5.0720000000015195 * 10 ** (-5) * 20:
-            print("hallelujah")
-            index = y_values.index(v)
-            print(v)
-            print("x: ", x_values[index])
     plt.title("Avg. insertion time")
     plt.xlabel("n")
     plt.ylabel("t")
-    print(len(y_values))
-    print(y_values)
     ma_w = 1
     y_values = moving_average(y_values, ma_w).tolist()
-    print("After MA")
-    print(len(y_values))
-    print(y_values)
     x_values = x_values[ma_w - 1:]
     plt.plot(x_values, y_values)
     plt.show()
@@ -153,4 +143,7 @@ def plot_non_membership_witness_size(n):
 #plot_avg_deletion_time(15)
 #plot_membership_witness_size(1000)
 #plot_non_membership_witness_size(1000)
-plot_avg(22000, 10, server.insert)
+test_time_start = time.time()
+plot_avg(100000, 10, server.insert)
+test_time_end = time.time()
+print("total time for test", test_time_end-test_time_start)
