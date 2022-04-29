@@ -1,9 +1,12 @@
 import cProfile
 import math
+import sys
+
 import numpy as np
 import random
 import timeit
 import matplotlib.pyplot as plt
+import scipy.ndimage.filters as ndif
 
 from verifier import Verifier
 from cache import Cache
@@ -32,24 +35,57 @@ def moving_average(x, w):
 
 # cProfile.run('insert_sorted(0, 1000)')
 
-def plot_avg_time(n, interval_length, function, titel, x_label, y_label, ma_weight):
+def get_avg_time(n, interval_length, function, random_writes=False, input_factor=1):
     y_values = []
     x_values = []
 
     for j in range(1, n, interval_length):
 
         start = timeit.default_timer()
+
         for i in range(j, j + interval_length):
-            function(i)
+            if random_writes:
+                function(input_factor * random.randint(0, 2 ** 32))
+            else:
+                function(i)
         end = timeit.default_timer()
 
-        avg_y = (end - start) / interval_length
+        avg_y = ((end - start) / interval_length)
+
         y_values.append(avg_y)
         x_values.append(j)
 
+    return x_values, y_values
+
+
+def get_avg_length(n, interval_length, function, input_factor=1):
+    y_values = []
+    x_values = []
+
+    for j in range(1, n, interval_length):
+
+        length = 0
+        for i in range(j, j + interval_length):
+            result = function(input_factor * i)
+            if result is not None:
+                length += sys.getsizeof(result)
+
+        avg_y = length / interval_length
+        y_values.append(avg_y)
+        x_values.append(j)
+
+    return x_values, y_values
+
+
+def plot(x_values, y_values, titel, x_label, y_label, ma_weight, scientific_y=True, logy=True):
     plt.title(titel)
     plt.xlabel(x_label)
     plt.ylabel(y_label)
+
+    if scientific_y:
+        plt.ticklabel_format(axis="y", style="sci", scilimits=(0, 0))
+    else:
+        plt.ticklabel_format(axis="y", style="plain", scilimits=(0, 0))
 
     y_values = moving_average(y_values, ma_weight).tolist()
     x_values = x_values[ma_weight - 1:]
@@ -57,97 +93,32 @@ def plot_avg_time(n, interval_length, function, titel, x_label, y_label, ma_weig
     plt.show()
 
 
-def plot_avg_insertion_time(n):
-    server.destroy_db()
-    exec_times = []
-    x_values = []
-
-    for i in range(1, n):
-        start_val = 2 ** (i - 1)
-        end_val = 2 ** i
-
-        start = timeit.default_timer()
-        insert_many(start_val, end_val)
-        end = timeit.default_timer()
-
-        x_values.append(end_val)
-        avg_insertion_time = (end - start) / (end_val - start_val)
-        exec_times.append(avg_insertion_time)
-    plt.title("Avg. insertion time")
-    plt.xlabel("n")
-    plt.ylabel("t")
-    plt.plot(x_values, exec_times)
-    plt.show()
-
-
-def plot_avg_deletion_time(n):
-    server.destroy_db()
-    exec_times = []
-    x_values = []
-    server.destroy_db()
-
-    insert_sorted(0, 2 ** n)
-
-    for i in range(1, n):
-        start_val = 2 ** (i - 1)
-        end_val = 2 ** i
-
-        start = timeit.default_timer()
-        for j in range(start_val, end_val):
-            server.delete(j)
-        end = timeit.default_timer()
-
-        x_values.append(end_val)
-        avg_deletion_time = (end - start) / (end_val - start_val)
-        exec_times.append(avg_deletion_time)
-    plt.title("Avg. deletion time")
-    plt.xlabel("n")
-    plt.ylabel("t")
-    plt.plot(x_values, exec_times)
-    plt.show()
-
-
-def plot_membership_witness_size(n):
-    server.destroy_db()
-    x_values = []
-
-    insert_sorted(0, n)
-
-    witness_lenghts = []
-    for i in range(0, n):
-        witness_lenghts.append(len(server.get_membership_proof(i)))
-        x_values.append(i)
-
-    plt.title("Membership proof length")
-    plt.xlabel("n")
-    plt.ylabel("l")
-    plt.plot(x_values, witness_lenghts)
-    plt.show()
-
-
-def plot_non_membership_witness_size(n):
-    server.destroy_db()
-    x_values = []
-
-    insert_sorted(-20, 0)
-
-    witness_lenghts = []
-    for i in range(0, n):
-        proof = server.get_non_membership_proof(i)
-        witness_lenghts.append(len(proof))
-        x_values.append(i)
-
-    plt.title("Non-membership proof length")
-    plt.xlabel("n")
-    plt.ylabel("l")
-    plt.plot(x_values, witness_lenghts)
-    plt.show()
-
-
 server.destroy_db()
-n = 100000
-interval = 1
+n = 60000
+interval = 1000
 ma = 1
-plot_avg_time(n, interval, server.insert, "Avg. insertion time", "s", "n", ma)
-plot_avg_time(n, interval, verifier.verify_membership, "Avg. verification time", "s", "n", ma)
-plot_avg_time(n, interval, server.delete, "Avg. deletion time", "s", "n", ma)
+time_label = "seconds"
+
+x_vals, y_vals = get_avg_time(n, interval, server.insert)
+plot(x_vals, y_vals, "Avg. insertion time", "n", time_label, ma)
+
+x_vals, y_vals = get_avg_time(n, interval, server.get_membership_proof)
+plot(x_vals, y_vals, "Avg. membership witness generation time", "n", time_label, ma)
+
+x_vals, y_vals = get_avg_time(n, interval, server.get_non_membership_proof, input_factor=-1)
+plot(x_vals, y_vals, "Avg. non-membership witness generation time", "n", time_label, ma)
+
+x_vals, y_vals = get_avg_length(n, interval, server.get_membership_proof)
+plot(x_vals, y_vals, "Avg. membership witness length", "n", "bytes", ma_weight=1, scientific_y=False)
+
+x_vals, y_vals = get_avg_length(n, interval, server.get_non_membership_proof, input_factor=-1)
+plot(x_vals, y_vals, "Avg. non-membership witness length", "n", "bytes", ma_weight=1, scientific_y=False)
+
+x_vals, y_vals = get_avg_time(n, interval, verifier.verify_membership)
+plot(x_vals, y_vals, "Avg. membership witness verification time", "n", time_label, ma)
+
+x_vals, y_vals = get_avg_time(n, interval, verifier.verify_non_membership)
+plot(x_vals, y_vals, "Avg. non-membership witness verification time", "n", time_label, ma)
+
+x_vals, y_vals = get_avg_time(n, interval, server.delete)
+plot(x_vals, y_vals, "Avg. deletion time", "n", "s", ma)
