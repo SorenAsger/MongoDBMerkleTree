@@ -122,4 +122,4 @@ plot(x_vals, y_vals, "Avg. non-membership witness verification time  / log(n)", 
 
 x_vals, y_vals = get_avg_time(n, interval, server.delete)
 plot(x_vals, y_vals, "Avg. deletion time  / log(n)", "n", "s", ma)
-
+# hello
