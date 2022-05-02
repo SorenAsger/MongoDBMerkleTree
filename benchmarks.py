@@ -49,7 +49,7 @@ def get_avg_time(n, interval_length, function, random_writes=False, input_factor
                 function(i)
         end = timeit.default_timer()
 
-        avg_y = ((end - start) / interval_length) / (1 + math.log(j))
+        avg_y = ((end - start) / interval_length)
 
         y_values.append(avg_y)
         x_values.append(j)
