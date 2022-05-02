@@ -42,7 +42,6 @@ def get_avg_time(n, interval_length, function, random_writes=False, input_factor
     for j in range(1, n, interval_length):
 
         start = timeit.default_timer()
-
         for i in range(j, j + interval_length):
             if random_writes:
                 function(input_factor * random.randint(0, 2 ** 32))
@@ -50,7 +49,7 @@ def get_avg_time(n, interval_length, function, random_writes=False, input_factor
                 function(i)
         end = timeit.default_timer()
 
-        avg_y = ((end - start) / interval_length)
+        avg_y = ((end - start) / interval_length) / (1 + math.log(j))
 
         y_values.append(avg_y)
         x_values.append(j)
@@ -100,25 +99,27 @@ ma = 1
 time_label = "seconds"
 
 x_vals, y_vals = get_avg_time(n, interval, server.insert)
-plot(x_vals, y_vals, "Avg. insertion time", "n", time_label, ma)
+plot(x_vals, y_vals, "Avg. insertion time / log(n)", "n", time_label, ma)
+
 
 x_vals, y_vals = get_avg_time(n, interval, server.get_membership_proof)
-plot(x_vals, y_vals, "Avg. membership witness generation time", "n", time_label, ma)
+plot(x_vals, y_vals, "Avg. membership witness generation time  / log(n)", "n", time_label, ma)
 
 x_vals, y_vals = get_avg_time(n, interval, server.get_non_membership_proof, input_factor=-1)
-plot(x_vals, y_vals, "Avg. non-membership witness generation time", "n", time_label, ma)
+plot(x_vals, y_vals, "Avg. non-membership witness generation time  / log(n)", "n", time_label, ma)
 
 x_vals, y_vals = get_avg_length(n, interval, server.get_membership_proof)
-plot(x_vals, y_vals, "Avg. membership witness length", "n", "bytes", ma_weight=1, scientific_y=False)
+plot(x_vals, y_vals, "Avg. membership witness length  / log(n)", "n", "bytes", ma_weight=1, scientific_y=False)
 
 x_vals, y_vals = get_avg_length(n, interval, server.get_non_membership_proof, input_factor=-1)
-plot(x_vals, y_vals, "Avg. non-membership witness length", "n", "bytes", ma_weight=1, scientific_y=False)
+plot(x_vals, y_vals, "Avg. non-membership witness length  / log(n)", "n", "bytes", ma_weight=1, scientific_y=False)
 
 x_vals, y_vals = get_avg_time(n, interval, verifier.verify_membership)
-plot(x_vals, y_vals, "Avg. membership witness verification time", "n", time_label, ma)
+plot(x_vals, y_vals, "Avg. membership witness verification time  / log(n)", "n", time_label, ma)
 
 x_vals, y_vals = get_avg_time(n, interval, verifier.verify_non_membership)
-plot(x_vals, y_vals, "Avg. non-membership witness verification time", "n", time_label, ma)
+plot(x_vals, y_vals, "Avg. non-membership witness verification time  / log(n)", "n", time_label, ma)
 
 x_vals, y_vals = get_avg_time(n, interval, server.delete)
-plot(x_vals, y_vals, "Avg. deletion time", "n", "s", ma)
+plot(x_vals, y_vals, "Avg. deletion time  / log(n)", "n", "s", ma)
+
