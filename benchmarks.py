@@ -49,13 +49,57 @@ def get_avg_time(n, interval_length, function, random_writes=False, input_factor
                 function(i)
         end = timeit.default_timer()
 
-        avg_y = (end - start)# / interval_length)
+        avg_y = (end - start) / interval_length
 
         y_values.append(avg_y)
         x_values.append(j)
 
     return x_values, y_values
 
+def get_avg_witness_time(n, interval_length, function, random_writes=False, input_factor=1):
+    y_values = []
+    x_values = []
+    amount_of_witnesses = 100
+    server.destroy_db()
+
+    # Insert interval length elements
+    # get avg time to generate 100 witnesses
+    # repeat until n
+    for j in range(1, n, interval_length):
+        insert_many(j, j + interval_length)
+
+        start = timeit.default_timer()
+        for i in range(0, amount_of_witnesses):
+            function(random.randint(0, j))
+        end = timeit.default_timer()
+
+        avg_y = (end - start) / amount_of_witnesses
+
+        y_values.append(avg_y)
+        x_values.append(j)
+
+    return x_values, y_values
+
+def get_avg_witness_length(n, interval_length, function, input_factor=1):
+    y_values = []
+    x_values = []
+    amount_of_witnesses = 100
+    server.destroy_db()
+
+    for j in range(1, n, interval_length):
+        insert_sorted(j, j + interval_length)
+
+        length = 0
+        for i in range(0, amount_of_witnesses):
+            result = function(input_factor * i)
+            if result is not None:
+                length += sys.getsizeof(result)
+
+        avg_y = length / amount_of_witnesses
+        y_values.append(avg_y)
+        x_values.append(j)
+
+    return x_values, y_values
 
 def get_avg_length(n, interval_length, function, input_factor=1):
     y_values = []
@@ -76,7 +120,7 @@ def get_avg_length(n, interval_length, function, input_factor=1):
     return x_values, y_values
 
 
-def plot(x_values, y_values, titel, x_label, y_label, ma_weight, scientific_y=True, logy=True):
+def plot(x_values, y_values, titel, x_label, y_label, ma_weight, filename, scientific_y=True, logy=True):
     plt.title(titel)
     plt.xlabel(x_label)
     plt.ylabel(y_label)
@@ -90,6 +134,7 @@ def plot(x_values, y_values, titel, x_label, y_label, ma_weight, scientific_y=Tr
     x_values = x_values[ma_weight - 1:]
     plt.plot(x_values, y_values)
     plt.show()
+    plt.savefig(filename)
 
 
 server.destroy_db()
@@ -97,28 +142,31 @@ n = 60000
 interval = 1000
 ma = 1
 time_label = "seconds"
+length_label = "bytes"
 
 x_vals, y_vals = get_avg_time(n, interval, server.insert)
-plot(x_vals, y_vals, "Total insertion time", "total values in DB", time_label, ma)
+plot(x_vals, y_vals, "Avg. insertion time", "total values in DB", time_label, ma, filename="hej")
 
-x_vals, y_vals = get_avg_time(n, interval, server.get_membership_proof)
-plot(x_vals, y_vals, "Total membership witness generation time", "total values in db", time_label, ma)
-
-x_vals, y_vals = get_avg_time(n, interval, server.get_non_membership_proof, input_factor=-1)
-plot(x_vals, y_vals, "Total non-membership witness generation time", "total values in db", time_label, ma)
-
-x_vals, y_vals = get_avg_length(n, interval, server.get_membership_proof)
-plot(x_vals, y_vals, "Total membership witness length", "total values in db", "bytes", ma_weight=1, scientific_y=False)
-
-x_vals, y_vals = get_avg_length(n, interval, server.get_non_membership_proof, input_factor=-1)
-plot(x_vals, y_vals, "Avg. non-membership witness length", "total values in db", "bytes", ma_weight=1, scientific_y=False)
-
-x_vals, y_vals = get_avg_time(n, interval, verifier.verify_membership)
-plot(x_vals, y_vals, "Avg. membership witness verification time", "n", time_label, ma)
-
-x_vals, y_vals = get_avg_time(n, interval, verifier.verify_non_membership)
-plot(x_vals, y_vals, "Avg. non-membership witness verification time", "n", time_label, ma)
-
+'''
 x_vals, y_vals = get_avg_time(n, interval, server.delete)
-plot(x_vals, y_vals, "Avg. deletion time", "total values in db", time_label, ma)
-# hello
+plot(x_vals, y_vals, "Avg. deletion time", "total values in DB", time_label, ma)
+
+x_vals, y_vals = get_avg_witness_time(n, interval, server.get_membership_proof)
+plot(x_vals, y_vals, "Avg. membership witness generation time", "total values in DB", time_label, ma)
+
+x_vals, y_vals = get_avg_witness_time(n, interval, server.get_non_membership_proof, input_factor=-1)
+plot(x_vals, y_vals, "Avg. non-membership witness generation time", "total values in DB", time_label, ma)
+
+x_vals, y_vals = get_avg_witness_length(n, interval, server.get_membership_proof)
+plot(x_vals, y_vals, "Avg. membership witness length", "total values in DB", length_label, ma_weight=1, scientific_y=False)
+
+x_vals, y_vals = get_avg_witness_length(n, interval, server.get_non_membership_proof, input_factor=-1)
+plot(x_vals, y_vals, "Avg. non-membership witness length", "total values in DB", length_label, ma_weight=1, scientific_y=False)
+
+x_vals, y_vals = get_avg_witness_time(n, interval, verifier.verify_membership)
+plot(x_vals, y_vals, "Avg. membership witness verification time", "total values in DB", time_label, ma)
+
+x_vals, y_vals = get_avg_witness_time(n, interval, verifier.verify_non_membership)
+plot(x_vals, y_vals, "Avg. non-membership witness verification time", "total values in DB", time_label, ma)
+
+'''

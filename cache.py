@@ -22,7 +22,7 @@ class Cache:
 
     def add(self, node):
         if node.node_id is None:
-            node.node_id = str(ObjectId())
+            node.node_id = ObjectId()
         if node.node_id in self._deleted:
             self._deleted.remove(node.node_id)
         self._added[node.node_id] = node

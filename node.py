@@ -1,27 +1,5 @@
 from crypto_util import HashFunction
 
-
-class Node:
-    def __init__(self, node_id, values, children_ids):
-        self.node_id = node_id
-        self.values = values
-        self.children_ids = children_ids
-        self.left_value = values[0]
-        if len(values) == 1:
-            self.right_value = None
-        else:
-            self.right_value = values[1]
-
-    def get_values(self):
-        return self.values
-
-    def get_children_ids(self):
-        return self.children_ids
-
-    def is_2_node(self):
-        return len(self.values) == 1
-
-
 class HoleNode:
     def __init__(self, node, child):
         self.node_id = node.node_id
