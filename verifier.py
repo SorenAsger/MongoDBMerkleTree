@@ -12,14 +12,16 @@ class Verifier:
 
     def verify_membership(self, value):
         proof = self.server.get_membership_proof(value)
+        return self.verify_membership_proof(value, proof)
+
+    def verify_membership_proof(self, value, proof):
         if proof is None:
             return False
         assert (value in proof[0][0])
         root_hash = self.build_root_hash(proof, value)
         return root_hash == self.server.get_root_hash()
 
-    def verify_non_membership(self, value):
-        proof = self.server.get_non_membership_proof(value)
+    def verify_non_membership_proof(self, value, proof):
         if proof is None:
             return False
 
@@ -31,6 +33,11 @@ class Verifier:
         # Build proof and compare to root hash
         root_hash = self.build_root_hash(proof, value)
         return root_hash == self.server.get_root_hash()
+
+    def verify_non_membership(self, value):
+        proof = self.server.get_non_membership_proof(value)
+        return self.verify_non_membership_proof(value, proof)
+
 
     def check_value_comes_from_correct_child(self, value, left, right, child_is_coming_from):
         # Coming from left child

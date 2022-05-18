@@ -1,9 +1,10 @@
 from node import Two3Node, HoleNode, get_hashes_from_nodes
 from cache import Cache
 
+
 class AuthDBServer:
 
-    def __init__(self, dbi, cache = None):
+    def __init__(self, dbi, cache=None):
         print("Server started.")
         self.root_id = None
         self.dbi = dbi
