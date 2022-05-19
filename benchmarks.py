@@ -94,7 +94,7 @@ def get_avg_witness_time(n, interval_length, function, proof_func, membership=Tr
         for i in range(0, amount_of_witnesses):
             # all values in [0, j + interval_length
             # should be in the DB at this point in time.
-            assert function(val_idx[i], proofs[i])
+            assert function(proof_values[val_idx[i]], proofs[i])
         end = timeit.default_timer()
 
         avg_y_verify = (end - start) / amount_of_witnesses
@@ -126,15 +126,9 @@ def get_avg_witness_length(n, interval_length, function, membership=True):
                 val = random.randint(0, 2**64)  # unlikely to be same as previous elements
             result = function(val)
             if result is not None:
-                length += sys.getsizeof(str(result))
-                for res in result:
-                    print(res)
-                #print(sys.getsizeof(str(result)))
-                #print(len(result))
-                #print(result)
+                length += str(result).__sizeof__()
             else:
                 print(membership, "got none THIS SHOULD NOT HAPPEN")
-        #print(server.get_depth())
 
         avg_y = length / amount_of_witnesses
         y_values.append(avg_y)
@@ -161,6 +155,7 @@ def plot(x_values, y_values, titel, x_label, y_label, ma_weight, filename, scien
 
 
 def repeat_and_average_experiment(experiment, reps=5):
+    print("starting experiment", experiment.__name__)
     res = experiment()
     vals = [[res[i][j]/reps for j in range(len(res[i]))] for i in range(len(res))]
     for _ in range(reps - 1):

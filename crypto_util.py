@@ -25,12 +25,12 @@ def get_node_hash(values, children):
     strng = ""
     for value in values:
         if value is None:
-            base64.b64encode(str(value).encode()).decode() + "*|"
+            strng += base64.b64encode(str(value).encode()).decode() + "*|"
         else:
             strng += base64.b64encode(str(value).encode()).decode() + "|"
     for child in children:
         if child is None:
-            base64.b64encode(str(child).encode()).decode() + "*|"
+            strng += base64.b64encode(str(child).encode()).decode() + "*|"
         else:
             strng += base64.b64encode(str(child).encode()).decode() + "|"
     h = hashlib.sha256()
