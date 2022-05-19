@@ -62,34 +62,39 @@ def get_avg_time(n, interval_length, function, inserting=True, random_writes=Tru
     return x_values, y_values
 
 
-def get_avg_witness_time(n, interval_length, function, proof_func):
+def get_avg_witness_time(n, interval_length, function, proof_func, membership=True):
     y_values_verify = []
     y_values_proof = []
     x_values = []
-    amount_of_witnesses = 100
+    amount_of_witnesses = 1000
     server.destroy_db()
+    values = [random.randint(0, 2 ** 64) for _ in range(n + 1)]
+    if membership:
+        proof_values = values
+    else:
+        proof_values = [random.randint(0, 2 ** 64) for _ in range(n +1)]
 
     # Insert interval length elements
     # get avg time to generate 100 witnesses
     # repeat until n
     for j in range(0, n, interval_length):
-        insert_many(j, j + interval_length)
+        for k in range(j, j+interval_length):
+            server.insert(values[k])
         proofs = []
-        values = []
         start = timeit.default_timer()
+        val_idx = [random.randint(0, j + interval_length-1) for _ in range(amount_of_witnesses)]
         for i in range(0, amount_of_witnesses):
             # all values in [0, j + interval_length
             # should be in the DB at this point in time.
-            val = random.randint(0, j + interval_length)
+            val = proof_values[val_idx[i]]
             proofs.append(proof_func(val))
-            values.append(val)
         end = timeit.default_timer()
         avg_y_proof = (end - start) / amount_of_witnesses
         start = timeit.default_timer()
         for i in range(0, amount_of_witnesses):
             # all values in [0, j + interval_length
             # should be in the DB at this point in time.
-            function(values[i], proofs[i])
+            assert function(val_idx[i], proofs[i])
         end = timeit.default_timer()
 
         avg_y_verify = (end - start) / amount_of_witnesses
@@ -104,21 +109,32 @@ def get_avg_witness_time(n, interval_length, function, proof_func):
 def get_avg_witness_length(n, interval_length, function, membership=True):
     y_values = []
     x_values = []
-    amount_of_witnesses = 100
+    amount_of_witnesses = 1000
     server.destroy_db()
-    for j in range(1, n, interval_length):
-        insert_sorted(j, j + interval_length)
+    values = [random.randint(0, 2 ** 64) for _ in range(n + 1)]
+    for j in range(0, n, interval_length):
+        #insert_sorted(j, j + interval_length)
+        for k in range(j, j+interval_length):
+            server.insert(values[k])
 
         length = 0
         for i in range(0, amount_of_witnesses):
             if membership:
-                val = random.randint(0, j + interval_length)
+                val_idx = random.randint(0, j + interval_length-1)
+                val = values[val_idx]
             else:
-                val = random.randint(n, 2**64)
+                val = random.randint(0, 2**64)  # unlikely to be same as previous elements
             result = function(val)
             if result is not None:
-                for node in result:
-                    length += sys.getsizeof(node)
+                length += sys.getsizeof(str(result))
+                for res in result:
+                    print(res)
+                #print(sys.getsizeof(str(result)))
+                #print(len(result))
+                #print(result)
+            else:
+                print(membership, "got none THIS SHOULD NOT HAPPEN")
+        #print(server.get_depth())
 
         avg_y = length / amount_of_witnesses
         y_values.append(avg_y)
@@ -161,15 +177,9 @@ ma = 1
 time_label = "seconds"
 length_label = "bytes"
 
-x_vals, y_vals = repeat_and_average_experiment(lambda: get_avg_witness_length(n, interval, server.get_membership_proof))
-plot(x_vals, y_vals, "Avg. membership witness length", "total values in DB", length_label, ma_weight=1,
+x_vals, y_vals = repeat_and_average_experiment(lambda: get_avg_witness_length(n, interval, server.get_non_membership_proof, membership=False))
+plot(x_vals, y_vals, "Avg. non-membership witness length", "total values in DB", length_label, ma_weight=1,
      scientific_y=False, filename="wit_length")
-
-x_vals, y_vals = repeat_and_average_experiment(lambda: get_avg_time(n, interval, server.insert))
-plot(x_vals, y_vals, "Avg. insertion time", "total values in DB", time_label, ma, filename="insertion")
-
-x_vals, y_vals = repeat_and_average_experiment(lambda: get_avg_time(n, interval, server.delete, inserting=False))
-plot(x_vals, y_vals[::-1], "Avg. deletion time", "total values in DB", time_label, ma, filename="deletion")
 
 x_vals, y_proof, y_verify = repeat_and_average_experiment(lambda: get_avg_witness_time(n, interval, verifier.verify_membership_proof, server.get_membership_proof))
 plot(x_vals, y_proof, "Avg. membership witness generation time", "total values in DB", time_label, ma,
@@ -179,7 +189,9 @@ plot(x_vals, y_verify, "Avg. membership witness verification time", "total value
      filename="wit_ver_time")
 
 
-x_vals, y_proof, y_verify = repeat_and_average_experiment(lambda: get_avg_witness_time(n, interval, verifier.verify_non_membership_proof, server.get_non_membership_proof))
+
+
+x_vals, y_proof, y_verify = repeat_and_average_experiment(lambda: get_avg_witness_time(n, interval, verifier.verify_non_membership_proof, server.get_non_membership_proof, membership=False))
 plot(x_vals, y_proof, "Avg. non-membership witness generation time", "total values in DB", time_label, ma,
      filename="non_mem_wit_gen_time")
 
@@ -187,12 +199,25 @@ plot(x_vals, y_verify, "Avg. non-membership witness verification time", "total v
      filename="non_mem_wit_ver_time")
 
 
+
+
+x_vals, y_vals = repeat_and_average_experiment(lambda: get_avg_time(n, interval, server.insert))
+plot(x_vals, y_vals, "Avg. insertion time", "total values in DB", time_label, ma, filename="insertion")
+
+x_vals, y_vals = repeat_and_average_experiment(lambda: get_avg_time(n, interval, server.delete, inserting=False))
+plot(x_vals, y_vals[::-1], "Avg. deletion time", "total values in DB", time_label, ma, filename="deletion")
+
+
+
+
+
+
+
+
 x_vals, y_vals = repeat_and_average_experiment(lambda: get_avg_witness_length(n, interval, server.get_membership_proof))
 plot(x_vals, y_vals, "Avg. membership witness length", "total values in DB", length_label, ma_weight=1,
      scientific_y=False, filename="wit_length")
 
-x_vals, y_vals =repeat_and_average_experiment(lambda: get_avg_witness_length(n, interval, server.get_non_membership_proof, membership=False))
-plot(x_vals, y_vals, "Avg. non-membership witness length", "total values in DB", length_label, ma_weight=1,
-     scientific_y=False, filename="non_mem_wit_length")
+
 
 

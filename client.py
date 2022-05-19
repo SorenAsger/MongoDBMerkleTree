@@ -1,4 +1,4 @@
-from crypto_util import HashFunction
+from crypto_util import HashFunction, get_node_hash
 from verifier import Verifier
 
 class Client:
@@ -6,7 +6,6 @@ class Client:
     def __init__(self, server):
         self.server = server
         self.server.destroy_db()
-        self.hash_function = HashFunction()
         self.verifier = Verifier(server)
 
     def split_node(self, node, value, left_children=None, right_children=None):
@@ -55,8 +54,7 @@ class Client:
             new_node.hash = node.hash
             new_path.append(new_node)
         if not new_path:
-            self.hash_function.update(value)
-            root_hash = self.hash_function.digest()
+            root_hash = get_node_hash([value, None], [None, None, None])
             self.server.insert(value)
         else:
             self.verifier.verify_membership(insert_node.left)
@@ -482,7 +480,6 @@ class ClientNode:
         self.sibling = None
         self.left = values[0]
         self.right = values[1]
-        self.hash_function = HashFunction()
         self.hash = None
         self.left_hash = None
         self.mid_hash = None
@@ -492,8 +489,6 @@ class ClientNode:
         return self.right is None
 
     def update_hash(self, last_hash=None):
-        self.hash_function.update(self.left)
-        self.hash_function.update(self.right)
         if self.left_hash is None:
             hashes = [last_hash, self.mid_hash, self.right_hash]
         elif self.mid_hash is None and not self.is_2_node():
@@ -502,10 +497,7 @@ class ClientNode:
             hashes = [self.left_hash, self.mid_hash, last_hash]
         else:
             hashes = [self.left_hash, self.mid_hash, self.right_hash]
-        self.hash_function.update(hashes[0])
-        self.hash_function.update(hashes[1])
-        self.hash_function.update(hashes[2])
-        self.hash = self.hash_function.digest()
+        self.hash = get_node_hash([self.left, self.right], hashes)
         return self.hash
 
     def set_values_and_hashes(self, values, hashes=None):

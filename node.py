@@ -1,4 +1,7 @@
-from crypto_util import HashFunction
+import base64
+
+from crypto_util import HashFunction, get_node_hash
+
 
 class HoleNode:
     def __init__(self, node, child):
@@ -33,7 +36,6 @@ class HoleNode:
 
 class Two3Node:
     def __init__(self, node_id, left):
-        self.hash_function = HashFunction()
         self.left = left
         self.node_id = node_id
         self.right = None
@@ -56,32 +58,26 @@ class Two3Node:
         # Calculates this hash himself.
         result = [self.get_values()]
         if calling_child_id == self.left_child_id:
-            result.append("caller")
+            result.append("c")
         else:
             result.append(get_hash_from_node(self.left_child_id, cache))
 
         if calling_child_id == self.mid_child_id:
-            result.append("caller")
+            result.append("c")
         else:
             result.append(get_hash_from_node(self.mid_child_id, cache))
 
         if calling_child_id == self.right_child_id:
-            result.append("caller")
+            result.append("c")
         else:
             result.append(get_hash_from_node(self.right_child_id, cache))
 
         return result
 
     def update_hash(self, cache):
-        self.hash_function.update(self.left)
-        if not self.is_2_node():
-            self.hash_function.update(self.right)
         child_ids = self.get_child_ids()
         hashes = get_hashes_from_nodes(child_ids, cache)
-        self.hash_function.update(hashes[0])
-        self.hash_function.update(hashes[1])
-        self.hash_function.update(hashes[2])
-        self.hash = self.hash_function.digest()
+        self.hash = get_node_hash([self.left, self.right], hashes)
         return self
 
     def get_child_ids(self):
@@ -143,3 +139,4 @@ def get_hashes_from_nodes(ids, cache):
     else:
         hashes = [cache.get(id).hash for id in ids]
     return hashes
+
