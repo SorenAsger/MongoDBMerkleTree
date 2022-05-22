@@ -11,14 +11,6 @@ class Cache:
         self._added = {}
         self._updated = {}
         self.write_to_db = write_to_db
-        self.retarded_size_increaser()
-
-    def retarded_size_increaser(self):
-        for i in range(0, 120000):
-            self._deleted.add(i)
-            self._deleted.remove(i)
-            self._added[i] = None
-            self._updated[i] = None
 
     def add(self, node):
         if node.node_id is None:

@@ -1,9 +1,10 @@
 from node import Two3Node, HoleNode, get_hashes_from_nodes
 from cache import Cache
 
+
 class AuthDBServer:
 
-    def __init__(self, dbi, cache = None):
+    def __init__(self, dbi, cache=None):
         print("Server started.")
         self.root_id = None
         self.dbi = dbi
@@ -608,6 +609,16 @@ class AuthDBServer:
         self.dbi.destroy_db()
         self.root_id = None
         self.cache.reset()
+
+    def get_depth(self):
+        root = self.cache.get(self.root_id)
+
+        def get_depth_help(node, current_depth=0):
+            if node is None:
+                return current_depth
+            return get_depth_help(self.cache.get(node.left_child_id), current_depth + 1)
+
+        return get_depth_help(root)
 
     def tree_to_str(self, node: 'Two3Node', depth=0):
         if node is None:

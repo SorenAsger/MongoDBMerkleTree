@@ -1,3 +1,4 @@
+import base64
 import hashlib
 
 
@@ -18,3 +19,20 @@ class HashFunction:
         if value is not None:
             value_as_bytes = str(value).encode('utf-8')
             self.m.update(value_as_bytes)
+
+
+def get_node_hash(values, children):
+    strng = ""
+    for value in values:
+        if value is None:
+            strng += base64.b64encode(str(value).encode()).decode() + "*|"
+        else:
+            strng += base64.b64encode(str(value).encode()).decode() + "|"
+    for child in children:
+        if child is None:
+            strng += base64.b64encode(str(child).encode()).decode() + "*|"
+        else:
+            strng += base64.b64encode(str(child).encode()).decode() + "|"
+    h = hashlib.sha256()
+    h.update(strng.encode())
+    return h.digest()
