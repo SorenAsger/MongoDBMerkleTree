@@ -6,15 +6,15 @@ import numpy as np
 import random
 import timeit
 import matplotlib.pyplot as plt
-import scipy.ndimage.filters as ndif
 
 from verifier import Verifier
 from cache import Cache
 from db_adapters import MongoDB
 from auth_db_server import AuthDBServer
+from immu_server import ImmuServer
 
 dbi = MongoDB()
-cache = Cache(dbi, write_to_db=False)
+cache = Cache(dbi, write_to_db=True)
 server = AuthDBServer(dbi, cache)
 verifier = Verifier(server)
 
@@ -60,17 +60,16 @@ def get_avg_witness_time(n, interval_length, function, random_writes=False, inpu
     y_values = []
     x_values = []
     amount_of_witnesses = 100
-    server.destroy_db()
 
     # Insert interval length elements
     # get avg time to generate 100 witnesses
     # repeat until n
-    for j in range(1, n, interval_length):
-        insert_many(j, j + interval_length)
+    for j in range(0, n, interval_length):
+        insert_sorted(j, j + interval_length)
 
         start = timeit.default_timer()
         for i in range(0, amount_of_witnesses):
-            function(random.randint(0, j))
+            function(random.randint(0, j + interval_length - 1))
         end = timeit.default_timer()
 
         avg_y = (end - start) / amount_of_witnesses
@@ -84,7 +83,6 @@ def get_avg_witness_length(n, interval_length, function, input_factor=1):
     y_values = []
     x_values = []
     amount_of_witnesses = 100
-    server.destroy_db()
 
     for j in range(1, n, interval_length):
         insert_sorted(j, j + interval_length)
@@ -137,15 +135,23 @@ def plot(x_values, y_values, titel, x_label, y_label, ma_weight, filename, scien
     plt.savefig(filename)
 
 
-server.destroy_db()
 n = 60000
-interval = 1000
+interval = 100
 ma = 1
 time_label = "seconds"
 length_label = "bytes"
 
-x_vals, y_vals = get_avg_time(n, interval, server.insert)
-plot(x_vals, y_vals, "Avg. insertion time", "total values in DB", time_label, ma, filename="hej")
+x_vals, y_vals = get_avg_witness_time(n, interval, verifier.verify_membership)
+plot(x_vals, y_vals, "Avg. membership verification time (MongoDB)", "total values in DB", time_label, ma, filename="mongo")
+
+server = ImmuServer()
+server.setdb("db13")
+
+x_vals, y_vals = get_avg_witness_time(n, interval, server.get_membership_proof)
+plot(x_vals, y_vals, "Avg. membership verification time (ImmuDB)", "total values in DB", time_label, ma, filename="immu")
+
+#x_vals, y_vals = get_avg_time(n, interval, server.insert, random_writes=True)
+#plot(x_vals, y_vals, "Avg. insertion time", "total values in DB", time_label, ma, filename="bench2")
 
 '''
 x_vals, y_vals = get_avg_time(n, interval, server.delete)
