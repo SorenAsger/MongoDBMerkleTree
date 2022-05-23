@@ -14,7 +14,7 @@ from auth_db_server import AuthDBServer
 from immu_server import ImmuServer
 
 dbi = MongoDB()
-cache = Cache(dbi, write_to_db=True)
+cache = Cache(dbi, write_to_db=False)
 server = AuthDBServer(dbi, cache)
 verifier = Verifier(server)
 
@@ -66,13 +66,13 @@ def get_avg_witness_time(n, interval_length, function, proof_func, membership=Tr
     y_values_verify = []
     y_values_proof = []
     x_values = []
-    amount_of_witnesses = 1000
+    amount_of_witnesses = 100
     server.destroy_db()
-    values = [random.randint(0, 2 ** 64) for _ in range(n + 1)]
+    values = [random.randint(0, 2 ** 64) for _ in range(n)]
     if membership:
         proof_values = values
     else:
-        proof_values = [random.randint(0, 2 ** 64) for _ in range(n +1)]
+        proof_values = [random.randint(0, 2 ** 64) for _ in range(n)]
 
     # Insert interval length elements
     # get avg time to generate 100 witnesses
@@ -81,16 +81,16 @@ def get_avg_witness_time(n, interval_length, function, proof_func, membership=Tr
         for k in range(j, j+interval_length):
             server.insert(values[k])
         proofs = []
-        start = timeit.default_timer()
         val_idx = [random.randint(0, j + interval_length-1) for _ in range(amount_of_witnesses)]
+        start = timeit.default_timer()
         for i in range(0, amount_of_witnesses):
-            function(random.randint(0, j + interval_length - 1))
             # all values in [0, j + interval_length
             # should be in the DB at this point in time.
             val = proof_values[val_idx[i]]
             proofs.append(proof_func(val))
         end = timeit.default_timer()
         avg_y_proof = (end - start) / amount_of_witnesses
+        #random.shuffle(proofs)
         start = timeit.default_timer()
         for i in range(0, amount_of_witnesses):
             # all values in [0, j + interval_length
@@ -158,7 +158,6 @@ def plot(x_values, y_values, titel, x_label, y_label, ma_weight, filename, scien
     plt.show()
 
 
-
 def repeat_and_average_experiment(experiment, reps=5):
     print("starting experiment", experiment.__name__)
     res = experiment()
@@ -170,9 +169,10 @@ def repeat_and_average_experiment(experiment, reps=5):
                 vals[j][i] = vals[j][i] + res[j][i]/reps
     return tuple(vals)
 
+
 server.destroy_db()
 n = 100000
-interval = 10000
+interval = 5000
 ma = 1
 time_label = "seconds"
 length_label = "bytes"
@@ -181,9 +181,6 @@ length_label = "bytes"
 #x_vals, y_vals = get_avg_time(n, interval, server.insert, random_writes=True)
 #plot(x_vals, y_vals, "Avg. insertion time", "total values in DB", time_label, ma, filename="bench2")
 
-x_vals, y_vals = repeat_and_average_experiment(lambda: get_avg_witness_length(n, interval, server.get_non_membership_proof, membership=False))
-plot(x_vals, y_vals, "Avg. non-membership witness length", "total values in DB", length_label, ma_weight=1,
-     scientific_y=False, filename="wit_length")
 
 x_vals, y_proof, y_verify = repeat_and_average_experiment(lambda: get_avg_witness_time(n, interval, verifier.verify_membership_proof, server.get_membership_proof))
 plot(x_vals, y_proof, "Avg. membership witness generation time", "total values in DB", time_label, ma,
@@ -192,6 +189,9 @@ plot(x_vals, y_proof, "Avg. membership witness generation time", "total values i
 plot(x_vals, y_verify, "Avg. membership witness verification time", "total values in DB", time_label, ma,
      filename="wit_ver_time")
 
+x_vals, y_vals = repeat_and_average_experiment(lambda: get_avg_witness_length(n, interval, server.get_non_membership_proof, membership=False))
+plot(x_vals, y_vals, "Avg. non-membership witness length", "total values in DB", length_label, ma_weight=1,
+     scientific_y=False, filename="wit_length")
 
 
 
@@ -217,8 +217,8 @@ x_vals, y_vals = repeat_and_average_experiment(lambda: get_avg_witness_length(n,
 plot(x_vals, y_vals, "Avg. membership witness length", "total values in DB", length_label, ma_weight=1,
      scientific_y=False, filename="wit_length")
 
-server = ImmuServer()
-server.setdb("insert name here")
+#server = ImmuServer()
+#server.setdb("insert name here")
 #    |
 #    |    Immu benchmark for memberships
 #    V
