@@ -4,12 +4,15 @@ from cache import Cache
 
 class AuthDBServer:
 
-    def __init__(self, dbi, cache=None):
+    def __init__(self, dbi, cache=None, insert_limit=1000):
         print("Server started.")
         self.root_id = None
         self.dbi = dbi
+        self.insert_limit = insert_limit
+        self.insert_count = 0
+        self.delete_count = 0
         if cache is None:
-            self.cache = Cache(self.dbi, write_to_db=True)
+            self.cache = Cache(self.dbi)
         else:
             self.cache = cache
 
@@ -131,18 +134,32 @@ class AuthDBServer:
             sibling_hashes.append(get_hashes_from_nodes(ch, self.cache))
         return current, path, hashes, siblings, sibling_hashes
 
-    def insert(self, value):
+    def insert_without_write(self, value):
         if self.root_id is None:
             self.root_id = "root"
             root_node = Two3Node(self.root_id, value)
             root_node.update_hash(self.cache)
             self.cache.add(root_node)
-            self.cache.write_cache_to_db()
             return
 
         insertion_node, parent, _ = self.find_nearest_node_and_parent(value)
         insertion_node.parent = parent
         self.insert_at(insertion_node, value)
+
+    def insert(self, value):
+        self.insert_without_write(value)
+        self.cache.write_cache_to_db()
+
+    def insert_limited_write(self, value):
+        self.insert_without_write(value)
+        self.insert_count += 1
+        if self.insert_count >= self.insert_limit:
+            self.cache.write_cache_to_db()
+            self.insert_count = 0
+
+    def insert_many(self, values):
+        for value in values:
+            self.insert_without_write(value)
         self.cache.write_cache_to_db()
 
     def update_hashes_upwards(self, starting_node: 'Two3Node'):
@@ -274,7 +291,14 @@ class AuthDBServer:
         self.cache.update(insert_location)
         self.update_hashes_upwards(insert_location)
 
-    def delete(self, value):
+    def delete_limited_write(self, value):
+        self.delete_without_write(value)
+        self.delete_count += 1
+        if self.delete_count >= self.insert_limit:
+            self.cache.write_cache_to_db()
+            self.delete_count = 0
+
+    def delete_without_write(self, value):
         if self.root_id is None:
             print("Tree is empty")
             return
@@ -291,6 +315,9 @@ class AuthDBServer:
             self.delete_at(value, nearest_node)
         else:
             print("Value", value, "not in tree")
+
+    def delete(self, value):
+        self.delete_without_write(value)
         self.cache.write_cache_to_db()
 
     def delete_at(self, value, node):
@@ -634,3 +661,6 @@ class AuthDBServer:
             print("Empty tree")
         else:
             print(self.tree_to_str(self.cache.get(self.root_id)))
+
+    def write_cache_to_db(self):
+        self.cache.write_cache_to_db()

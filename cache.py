@@ -5,18 +5,15 @@ from node import Two3Node
 
 class Cache:
 
-    def __init__(self, dbi, write_to_db=True):
+    def __init__(self, dbi):
         self.dbi = dbi
         self._deleted = set()
         self._added = {}
         self._updated = {}
-        self.write_to_db = write_to_db
 
     def add(self, node):
         if node.node_id is None:
             node.node_id = ObjectId()
-        if node.node_id in self._deleted:
-            self._deleted.remove(node.node_id)
         self._added[node.node_id] = node
         return node
 
@@ -37,13 +34,12 @@ class Cache:
         return self.add(node_to_insert)
 
     def get(self, node_id):
-        if node_id not in self._deleted:
-            if node_id in self._updated:
-                return self._updated[node_id]
-            if node_id in self._added:
-                return self._added[node_id]
-            else:
-                return self.dbi.get_23_node_by_id(node_id)
+        if node_id in self._updated:
+            return self._updated[node_id]
+        if node_id in self._added:
+            return self._added[node_id]
+        else:
+            return self.dbi.get_23_node_by_id(node_id)
 
     def update(self, node):
         # If a node has been added to cache
@@ -57,6 +53,11 @@ class Cache:
             self._updated[node_id] = node
 
     def delete(self, node_id):
+        if node_id in self._added:
+            self._added.pop(node_id)
+            return
+        elif node_id in self._updated:
+            self._updated.pop(node_id)
         self._deleted.add(node_id)
 
     def reset(self):
@@ -65,9 +66,6 @@ class Cache:
         self._updated = {}
 
     def write_cache_to_db(self):
-        if not self.write_to_db:
-            return
-
         self.dbi.delete_many_23_nodes(list(self._deleted))
         self.dbi.create_many_23_nodes_from_node(list(self._added.values()))
         self.dbi.update_many_23_nodes(list(self._updated.values()))
