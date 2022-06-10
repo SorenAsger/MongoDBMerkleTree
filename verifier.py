@@ -30,7 +30,9 @@ class Verifier:
         # Check that value is not in the first node
         first_node = proof[0]
         first_node_values = first_node[0]
+        first_node_children = first_node[1:len(first_node)]
         assert value not in first_node_values
+        assert first_node_children == [None, None, None]
 
         # Build proof and compare to root hash
         root_hash = self.build_root_hash(proof, value)
